@@ -340,6 +340,7 @@ function drawGroups(names, g){
   shuffle(names).forEach((n,i) => groups[i%g].push(n)); // 每次完全随机
   return groups;
 }
+function twoLegs(g){ return [{a:g[0],b:g[1],sa:"",sb:""},{a:g[1],b:g[0],sa:"",sb:""}]; }
 function makeMatches(m){ const r=[]; for(let i=0;i<m.length;i++) for(let j=i+1;j<m.length;j++) r.push({a:m[i],b:m[j],sa:"",sb:""}); return r; }
 /* 赛制：groups 小组赛 | cross 小组第一对第二（同组不相遇）| pairs 随机两两对决 | rr 单组循环赛 */
 const FORMATS = {
@@ -365,7 +366,8 @@ function fillDraw(s, names){
   else if (s.format === "rr") s.groups = [shuffle(names)];
   else s.groups = drawGroups(names, s.groupCount);
   s.groupCount = s.groups.length;
-  s.matches = s.groups.map(makeMatches);
+  // 淘汰赛每组两回合（主客各一场），其他赛制组内单循环
+  s.matches = s.groups.map(g => (s.format === "cross" || s.format === "pairs") && g.length === 2 ? twoLegs(g) : makeMatches(g));
   s.pts = s.groups.map(g => g.map(() => 0));
   s.name = stageName(names.length);
   s.createdAt = new Date().toISOString();
@@ -396,9 +398,14 @@ function unfinished(s){
   if (s.scoreMode !== "match") return 0;
   return s.matches.reduce((n, g) => n + g.filter(m => !done(m)).length, 0);
 }
-function ties(s){ // 两人对决打平、需要手动决定晋级者的场数
+function ties(s){ // 两人对决打完后积分、净胜球都相同，需要手动决定晋级者的组数
   if (s.scoreMode !== "match") return 0;
-  return s.groups.reduce((n, g, gi) => n + (g.length === 2 && s.matches[gi][0] && done(s.matches[gi][0]) && +s.matches[gi][0].sa === +s.matches[gi][0].sb ? 1 : 0), 0);
+  return s.groups.reduce((n, g, gi) => {
+    const ms = s.matches[gi] || [];
+    if (g.length !== 2 || !ms.length || !ms.every(done)) return n;
+    const [x, y] = standings(g, ms);
+    return n + (x.pts === y.pts && (x.gf - x.ga) === (y.gf - y.ga) ? 1 : 0);
+  }, 0);
 }
 function champion(s){
   if (!s || !s.groups || s.groups.length !== 1 || s.adv !== 1 || s.scoreMode !== "match") return null;
@@ -463,7 +470,7 @@ function renderStages(){
   }).join("");
   $("#stageHead").hidden = !s.groups;
   $("#stageName").textContent = s.name || "";
-  $("#stageSub").textContent = !s.groups ? "" : isKO(s) ? `${countOf(s.groups)} 人 · ${FORMATS[s.format]} · 共 ${s.groups.length} 场，胜者晋级` : s.format === "rr" ? `${countOf(s.groups)} 人循环赛 · 积分第一名夺冠` : `${countOf(s.groups)} 人 · ${s.groups.length} 组 · 每组前 ${s.adv} 名晋级`;
+  $("#stageSub").textContent = !s.groups ? "" : isKO(s) ? `${countOf(s.groups)} 人 · ${FORMATS[s.format]} · ${s.groups.length} 组对决，每组两回合，积分高者晋级（同分看净胜球）` : s.format === "rr" ? `${countOf(s.groups)} 人循环赛 · 积分第一名夺冠` : `${countOf(s.groups)} 人 · ${s.groups.length} 组 · 每组前 ${s.adv} 名晋级`;
   $("#oldNote").hidden = isLatest();
   const c = isLatest() ? champion(s) : null;
   $("#champ").hidden = !c;
@@ -486,16 +493,16 @@ function tableHTML(s, gi){
     st.map((r,i)=>{ const gd=r.gf-r.ga; return `<tr class="${i<s.adv?"adv":""}"><td class="pos num">${i+1}</td><td class="nm" title="${esc(r.n)}">${esc(r.n)}</td><td class="num">${r.p}</td><td class="num">${r.w}</td><td class="num">${r.d}</td><td class="num">${r.l}</td><td class="num ${gd>0?"gd-pos":gd<0?"gd-neg":""}">${gd>0?"+":""}${gd}</td><td class="pts num">${r.pts}</td></tr>`; }).join("")
   }</tbody></table>`;
 }
-const playedText = (s, gi) => `组内对阵 · 已赛 ${s.matches[gi].filter(done).length}/${s.matches[gi].length}`;
+const playedText = (s, gi) => (s.matches[gi].length === 2 && s.groups[gi].length === 2 ? "两回合" : "组内对阵") + ` · 已赛 ${s.matches[gi].filter(done).length}/${s.matches[gi].length}`;
 const isKO = s => s.format === "cross" || s.format === "pairs";
-const groupLabel = (s, gi) => s.groups.length === 1 ? (s.name || "决赛") + (s.format === "rr" ? " · 循环赛" : "") : isKO(s) ? "第 " + (gi+1) + " 场" : (LETTERS[gi] || gi+1) + " 组";
+const groupLabel = (s, gi) => s.groups.length === 1 ? (s.name || "决赛") + (s.format === "rr" ? " · 循环赛" : "") : isKO(s) ? "对决 " + (gi+1) : (LETTERS[gi] || gi+1) + " 组";
 
 function renderGroups(){
   const s = stage();
   document.querySelectorAll("#scoreTabs button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.v === s.scoreMode); b.disabled = !admin; });
   $("#advN").textContent = s.adv;
   $("#modeHint").textContent = s.scoreMode === "match"
-    ? "胜 3 分、平 1 分、负 0 分；同分看净胜分，再看进球数。" + (admin ? "在对阵里填比分，填完点底部「发布」。" : "")
+    ? (isKO(s) ? "每组两回合，每场胜 3 分、平 1 分、负 0 分，两场积分高者晋级；同分看净胜球。" : "胜 3 分、平 1 分、负 0 分；同分看净胜分，再看进球数。") + (admin ? "在对阵里填比分，填完点底部「发布」。" : "")
     : "按总分排名。" + (admin ? "点按钮加减分，改完点底部「发布」。" : "");
   $("#adminTools").hidden = !admin || !s.groups;
   $("#advOpen").hidden = !isLatest() || !s.groups || (s.groups.length === 1 && s.adv <= 1); // 决赛/循环赛是最后一轮
@@ -555,8 +562,8 @@ function renderSetup(){
   $("#groupBlock").hidden = fmt !== "groups";
   $("#advInRow").hidden = fmt !== "groups";
   $("#formatNote").hidden = fmt === "groups";
-  $("#formatNote").textContent = fmt === "cross" ? "本轮赛制：第一对第二。名单前一半是各组第一（按组顺序），后一半是对应的各组第二。重新抽签会重新随机配对，同组的不会碰面。"
-    : fmt === "pairs" ? "本轮赛制：随机两两对决，每场胜者晋级。重新抽签会重新随机配对。"
+  $("#formatNote").textContent = fmt === "cross" ? "本轮赛制：第一对第二，每组两回合，比积分，同分看净胜球。名单前一半是各组第一（按组顺序），后一半是对应的各组第二。重新抽签会重新随机配对，同组的不会碰面。"
+    : fmt === "pairs" ? "本轮赛制：随机两两对决，每组两回合，比积分，同分看净胜球。重新抽签会重新随机配对。"
     : fmt === "rr" ? "本轮赛制：所有人一组循环赛，积分第一名是冠军。" : "";
   $("#drawWarn").hidden = !s.groups;
   $("#drawBtn").textContent = s.groups ? "重新抽签" : "一键抽签分组";
@@ -614,8 +621,8 @@ function renderAdv(){
   $("#advFmtSeg").innerHTML = opts.map(f => `<button type="button" data-v="${f}" aria-pressed="${nextCfg.format===f}">${FORMATS[f]}</button>`).join("");
   const f = nextCfg.format;
   $("#advFmtHint").textContent =
-    f === "cross" ? `小组第一对另一组的小组第二，随机配对，同组不相遇。共 ${n/2} 场，胜者晋级。名单前一半是小组第一、后一半是对应的小组第二。`
-    : f === "pairs" ? `随机两两对决，共 ${n/2} 场，胜者晋级。`
+    f === "cross" ? `小组第一对另一组的小组第二，随机配对，同组不相遇。${n/2} 组对决，每组打两回合，比积分，同分看净胜球。名单前一半是小组第一、后一半是对应的小组第二。`
+    : f === "pairs" ? `随机两两对决，${n/2} 组，每组打两回合，比积分，同分看净胜球。`
     : f === "rr" ? `${n} 人一组循环赛，每人赛 ${n-1} 场，共 ${n*(n-1)/2} 场，积分第一名是冠军。`
     : "按下面的组数随机分组，打小组赛。";
   $("#advGroupBlock").hidden = f !== "groups";
@@ -636,7 +643,7 @@ $("#advOpen").onclick = () => {
   $("#advIntro").textContent = `根据「${s.name}」当前排名，共 ${n} 人晋级。确认后会新建一轮，「${s.name}」的结果保留在后面的页签里。`;
   const left = unfinished(s), tie = ties(s), msgs = [];
   if (left) msgs.push(`本轮还有 ${left} 场比赛没填比分，排名可能还会变。`);
-  if (tie) msgs.push(`有 ${tie} 场对决打平，请在下面名单里把实际晋级的人改对（比如点球胜者）。`);
+  if (tie) msgs.push(`有 ${tie} 组对决两回合打完积分和净胜球都一样，请在下面名单里把实际晋级的人改对（比如加赛或点球胜者）。`);
   $("#advWarn").hidden = !msgs.length;
   $("#advWarn").textContent = msgs.length ? "注意：" + msgs.join("") : "";
   $("#advBox").hidden = false;
