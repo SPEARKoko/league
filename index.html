@@ -21,7 +21,7 @@
   }
 }
 *{box-sizing:border-box}
-   [hidden]{display:none!important}
+[hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;font-size:15px;line-height:1.6;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(96px + env(safe-area-inset-bottom,0px))}
 .wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
@@ -126,6 +126,23 @@ tr.adv td.pos::before,.prow.adv .pos::before{content:"";display:inline-block;wid
 .toast.show{opacity:1}
 textarea.out{min-height:120px}
 .notice{background:var(--warn-bg);border:1px solid var(--gold);border-radius:10px;padding:10px 14px;font-size:13.5px}
+/* stages */
+.stages{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.stages button{flex:none;border-radius:999px;padding:6px 14px;display:inline-flex;align-items:center;gap:6px}
+.stages button[aria-pressed="true"]{background:var(--pitch);border-color:var(--pitch);color:var(--pitch-ink);font-weight:700}
+.stages .live{font-size:11px;font-weight:700;background:var(--gold);color:#1a1a1a;border-radius:999px;padding:0 7px;line-height:18px}
+.stagehead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.stagehead h2{margin:0;font-size:22px;font-weight:900}
+.stagehead .sub{font-size:13px;color:var(--muted)}
+.oldnote{font-size:13px;color:var(--muted);background:var(--chip);border-radius:8px;padding:6px 12px}
+.champ{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#FFE29A,#E3A82B);color:#2a1b00;border-radius:12px;padding:14px 18px}
+.champ img{width:48px;height:48px;border-radius:50%}
+.champ .k{font-size:12px;font-weight:700;letter-spacing:.12em}
+.champ .v{font-size:24px;font-weight:900;line-height:1.2}
+.advbox{border-color:var(--pitch)}
+.advbox h3{margin:0 0 4px;font-size:17px}
+.advgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px}
+@media (max-width:720px){.advgrid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -155,14 +172,21 @@ textarea.out{min-height:120px}
     <div class="err" id="loginErr"></div>
   </section>
 
-  <!-- 赛事设置（仅管理员） -->
+  <!-- 轮次页签：最新在最前 -->
+  <nav class="stages" id="stageTabs" aria-label="轮次" hidden></nav>
+
+  <div class="stagehead" id="stageHead" hidden><h2 id="stageName"></h2><span class="sub" id="stageSub"></span></div>
+  <div class="oldnote" id="oldNote" hidden>这是往期结果。最新一轮在最前面的页签。</div>
+  <div class="champ" id="champ" hidden><img src="logo.png" alt="" onerror="this.remove()"><div><div class="k">CHAMPION · 冠军</div><div class="v" id="champName"></div></div></div>
+
+  <!-- 本轮设置与抽签（仅管理员） -->
   <details class="card" id="setupBox" hidden>
-    <summary id="setupSummary">赛事设置与抽签</summary>
+    <summary id="setupSummary">本轮设置与抽签</summary>
     <div class="setup">
       <div>
-        <label class="lbl" for="titleIn">赛事名称</label>
+        <label class="lbl" for="titleIn">赛事名称（所有轮次共用）</label>
         <input type="text" id="titleIn" maxlength="40" style="margin-bottom:12px">
-        <label class="lbl" for="namesIn">参赛名单（每行一个，也可用逗号、顿号分隔）</label>
+        <label class="lbl" for="namesIn">本轮名单（每行一个，也可用逗号、顿号分隔）</label>
         <textarea id="namesIn" spellcheck="false"></textarea>
         <div class="hint">共 <b id="nCount">0</b> 人 · <button type="button" class="link" id="sampleBtn">填入32人示例</button> <button type="button" class="link" id="clearBtn">清空</button></div>
       </div>
@@ -170,7 +194,7 @@ textarea.out{min-height:120px}
         <div>
           <span class="lbl">分几组</span>
           <div class="seg" id="groupSeg"></div>
-          <div class="row" style="margin-top:8px"><span class="hint" style="margin:0">自定义</span><input id="groupCustom" class="sm num" type="number" min="1" max="26" aria-label="自定义组数"></div>
+          <div class="row" style="margin-top:8px"><span class="hint" style="margin:0">自定义</span><input id="groupCustom" class="sm num" type="number" min="1" max="64" aria-label="自定义组数"></div>
           <p class="hint" id="perGroup"></p>
         </div>
         <div>
@@ -182,16 +206,54 @@ textarea.out{min-height:120px}
           <p class="hint">分档抽签像世界杯：名单按顺序分档，排在前面的是种子，每组每档各抽一人。</p>
         </div>
         <div class="row">
-          <label class="lbl" for="advIn" style="margin:0">每组出线名额</label>
+          <label class="lbl" for="advIn" style="margin:0">每组晋级名额</label>
           <input id="advIn" class="sm num" type="number" min="0" max="10">
         </div>
         <div class="row">
           <button class="primary" type="button" id="drawBtn">一键抽签分组</button>
         </div>
-        <p class="hint" id="drawWarn" hidden>已经抽过签了，重新抽签会清空所有比分。</p>
+        <p class="hint" id="drawWarn" hidden>本轮已经抽过签了，重新抽签会清空本轮所有比分。</p>
       </div>
     </div>
   </details>
+
+  <!-- 晋级下一轮（仅管理员、仅最新一轮） -->
+  <section class="card advbox" id="advBox" hidden>
+    <h3>晋级下一轮</h3>
+    <p class="hint" style="margin:0" id="advIntro"></p>
+    <p class="notice" id="advWarn" hidden style="margin:10px 0 0"></p>
+    <div class="advgrid">
+      <div>
+        <label class="lbl" for="advNames">晋级名单（可以手动调整，排在前面的是种子）</label>
+        <textarea id="advNames" spellcheck="false"></textarea>
+        <div class="hint">共 <b id="advCount">0</b> 人 · 下一轮叫「<b id="advStageName"></b>」</div>
+      </div>
+      <div class="opts">
+        <div>
+          <span class="lbl">下一轮分几组</span>
+          <div class="seg" id="advGroupSeg"></div>
+          <div class="row" style="margin-top:8px"><span class="hint" style="margin:0">自定义</span><input id="advGroupCustom" class="sm num" type="number" min="1" max="64" aria-label="下一轮自定义组数"></div>
+          <p class="hint" id="advPerGroup"></p>
+        </div>
+        <div>
+          <span class="lbl">抽签方式</span>
+          <div class="seg" id="advModeSeg">
+            <button type="button" data-v="pots">分档抽签</button>
+            <button type="button" data-v="random">完全随机</button>
+          </div>
+          <p class="hint">默认分档：各组第一名互相避开，不会提前碰面。</p>
+        </div>
+        <div class="row">
+          <label class="lbl" for="advNextAdv" style="margin:0">下一轮每组晋级名额</label>
+          <input id="advNextAdv" class="sm num" type="number" min="0" max="10">
+        </div>
+        <div class="row">
+          <button class="primary" type="button" id="advGo">确认，抽签生成下一轮</button>
+          <button type="button" id="advCancel">取消</button>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section style="display:flex;flex-direction:column;gap:12px">
     <div class="toolbar">
@@ -200,10 +262,14 @@ textarea.out{min-height:120px}
         <button type="button" data-v="points">直接加分</button>
       </div>
       <div class="row">
-        <span class="legend"><i></i>每组前 <b id="advN">2</b> 名出线</span>
+        <span class="legend"><i></i>每组前 <b id="advN">2</b> 名晋级</span>
         <button type="button" id="copyBtn">复制结果文字</button>
-        <button type="button" class="danger" id="resetBtn" hidden>清零比分</button>
       </div>
+    </div>
+    <div class="row" id="adminTools" hidden>
+      <button type="button" class="primary" id="advOpen">晋级下一轮 →</button>
+      <button type="button" class="danger" id="resetBtn">清零本轮比分</button>
+      <button type="button" class="danger" id="delStageBtn">删除这一轮</button>
     </div>
     <p class="hint" id="modeHint" style="margin:0"></p>
     <div class="groups" id="groups"></div>
@@ -237,18 +303,34 @@ const CONFIG = { owner: "", repo: "", branch: "main", dataPath: "data.json", aut
 const $ = s => document.querySelector(s);
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const SAMPLE = ["西班牙","阿根廷","法国","英格兰","巴西","葡萄牙","荷兰","比利时","德国","克罗地亚","摩洛哥","哥伦比亚","乌拉圭","瑞士","日本","墨西哥","美国","挪威","塞内加尔","韩国","澳大利亚","厄瓜多尔","奥地利","伊朗","加拿大","埃及","苏格兰","巴拉圭","科特迪瓦","加纳","沙特","南非"];
-const EMPTY = { title: "CENTRAL LEAGUE", names: [], groupCount: 4, drawMode: "random", adv: 2, scoreMode: "match", groups: null, matches: null, pts: null, updatedAt: null };
 
-let data = null;      // 已发布的数据（所有人看到的）
-let draft = null;     // 管理员正在编辑的副本
-let admin = false;
-let token = null;
-let sha = null;       // data.json 在 GitHub 上的版本号
-let changes = 0;
-let busy = false;
+/* 数据结构：{ title, updatedAt, stages: [第1轮, 第2轮, …] }，最后一轮是正在进行的 */
+function newStage(opts){
+  return Object.assign({ name: "", names: [], groupCount: 4, drawMode: "random", adv: 2, scoreMode: "match", groups: null, matches: null, pts: null, createdAt: null }, opts || {});
+}
+// 兼容旧版（没有 stages 的单轮数据）
+function normalize(raw){
+  const d = { title: (raw && raw.title) || "CENTRAL LEAGUE", updatedAt: (raw && raw.updatedAt) || null, stages: [] };
+  if (raw && Array.isArray(raw.stages)) d.stages = raw.stages.map(s => newStage(s));
+  else if (raw && (raw.groups || (raw.names && raw.names.length))) {
+    d.stages = [newStage({ name: raw.groups ? stageName(countOf(raw.groups)) : "", names: raw.names || [], groupCount: raw.groupCount || 4, drawMode: raw.drawMode || "random", adv: raw.adv == null ? 2 : raw.adv, scoreMode: raw.scoreMode || "match", groups: raw.groups || null, matches: raw.matches || null, pts: raw.pts || null })];
+  }
+  if (!d.stages.length) d.stages.push(newStage());
+  return d;
+}
+const countOf = groups => groups.reduce((n, g) => n + g.length, 0);
+const stageName = n => n === 2 ? "决赛" : n + "强";
+
+let data = null;      // 已发布的数据
+let draft = null;     // 管理员编辑中的副本
+let admin = false, token = null, sha = null, changes = 0, busy = false;
+let sel = -1;         // 正在看第几轮（-1 = 最新）
 
 const clone = o => JSON.parse(JSON.stringify(o));
-const view = () => (admin ? draft : data) || EMPTY;
+const view = () => (admin ? draft : data) || normalize(null);
+const selIndex = () => { const n = view().stages.length; return sel < 0 || sel >= n ? n - 1 : sel; };
+const stage = () => view().stages[selIndex()];
+const isLatest = () => selIndex() === view().stages.length - 1;
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function store(k, v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch(e){} }
 function load(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
@@ -274,6 +356,14 @@ function drawGroups(names, g, mode){
   return groups;
 }
 function makeMatches(m){ const r=[]; for(let i=0;i<m.length;i++) for(let j=i+1;j<m.length;j++) r.push({a:m[i],b:m[j],sa:"",sb:""}); return r; }
+function fillDraw(s, names){
+  s.names = names;
+  s.groups = drawGroups(names, s.groupCount, s.drawMode);
+  s.matches = s.groups.map(makeMatches);
+  s.pts = s.groups.map(g => g.map(() => 0));
+  s.name = stageName(names.length);
+  s.createdAt = new Date().toISOString();
+}
 const done = m => m.sa !== "" && m.sb !== "" && m.sa != null && m.sb != null;
 function standings(members, matches){
   const t = {}; members.forEach(n => t[n] = {n,p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0});
@@ -285,9 +375,27 @@ function standings(members, matches){
   });
   return members.map(n=>t[n]).sort((x,y)=> y.pts-x.pts || (y.gf-y.ga)-(x.gf-x.ga) || y.gf-x.gf || members.indexOf(x.n)-members.indexOf(y.n));
 }
-function pointsRows(d, gi){
-  const pts = (d.pts && d.pts[gi]) || [];
-  return d.groups[gi].map((n,i)=>({n,i,v:pts[i]||0})).sort((x,y)=> y.v-x.v || x.i-y.i);
+function pointsRows(s, gi){
+  const pts = (s.pts && s.pts[gi]) || [];
+  return s.groups[gi].map((n,i)=>({n,i,v:pts[i]||0})).sort((x,y)=> y.v-x.v || x.i-y.i);
+}
+function ranked(s, gi){ return s.scoreMode === "points" ? pointsRows(s, gi).map(r => r.n) : standings(s.groups[gi], s.matches[gi]).map(r => r.n); }
+// 晋级名单：先排各组第 1 名，再排各组第 2 名……（方便下一轮分档）
+function qualifiers(s){
+  const lists = s.groups.map((_, gi) => ranked(s, gi).slice(0, s.adv)), out = [];
+  for (let k = 0; k < s.adv; k++) lists.forEach(l => { if (l[k] != null) out.push(l[k]); });
+  return out;
+}
+function unfinished(s){
+  if (s.scoreMode !== "match") return 0;
+  return s.matches.reduce((n, g) => n + g.filter(m => !done(m)).length, 0);
+}
+function champion(s){
+  if (!s || !s.groups || s.groups.length !== 1 || s.adv !== 1 || s.scoreMode !== "match") return null;
+  if (unfinished(s)) return null;
+  const st = standings(s.groups[0], s.matches[0]);
+  if (st.length > 1 && st[0].pts === st[1].pts && (st[0].gf - st[0].ga) === (st[1].gf - st[1].ga) && st[0].gf === st[1].gf) return null; // 打平未分胜负
+  return st[0] ? st[0].n : null;
 }
 
 /* ============ GitHub 读写 ============ */
@@ -295,14 +403,11 @@ const api = p => `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}${p
 const headers = () => ({ "Authorization": "Bearer " + token, "Accept": "application/vnd.github+json" });
 function b64encode(str){ const bytes = new TextEncoder().encode(str); let bin=""; bytes.forEach(b => bin += String.fromCharCode(b)); return btoa(bin); }
 function b64decode(b64){ const bin = atob(b64.replace(/\s/g,"")); const bytes = Uint8Array.from(bin, c => c.charCodeAt(0)); return new TextDecoder().decode(bytes); }
-
-// 所有人：从网站本身读取已发布的数据
 async function loadPublic(){
   const r = await fetch(CONFIG.dataPath + "?t=" + Date.now(), { cache: "no-store" });
   if (!r.ok) throw new Error("http " + r.status);
-  return Object.assign(clone(EMPTY), await r.json());
+  return normalize(await r.json());
 }
-// 管理员：通过 GitHub 接口读取最新数据和版本号
 async function loadLatest(){
   const r = await fetch(api("/contents/" + CONFIG.dataPath + "?ref=" + CONFIG.branch + "&t=" + Date.now()), { headers: headers(), cache: "no-store" });
   if (r.status === 401) throw new Error("bad_token");
@@ -310,7 +415,7 @@ async function loadLatest(){
   if (!r.ok) throw new Error("http " + r.status);
   const j = await r.json();
   sha = j.sha;
-  return Object.assign(clone(EMPTY), JSON.parse(b64decode(j.content)));
+  return normalize(JSON.parse(b64decode(j.content)));
 }
 async function saveLatest(obj){
   const body = { message: "更新积分榜 " + new Date().toLocaleString("zh-CN", {hour12:false}), content: b64encode(JSON.stringify(obj, null, 1)), sha, branch: CONFIG.branch };
@@ -319,8 +424,7 @@ async function saveLatest(obj){
   if (r.status === 401) throw new Error("bad_token");
   if (r.status === 403 || r.status === 404) throw new Error("no_write");
   if (!r.ok) throw new Error("http " + r.status);
-  const j = await r.json();
-  sha = j.content.sha;
+  sha = (await r.json()).content.sha;
 }
 
 /* ============ 页面 ============ */
@@ -336,8 +440,27 @@ function renderHeader(){
   $("#updated").textContent = d.updatedAt ? "最后更新：" + fmtTime(d.updatedAt) : "尚未发布";
   $("#autoTip").textContent = admin ? "" : "每 " + CONFIG.autoRefreshSec + " 秒自动刷新";
   $("#adminBtn").hidden = admin;
-  $("#advN").textContent = d.adv;
 }
+function renderStages(){
+  const d = view(), n = d.stages.length, cur = selIndex(), s = stage();
+  const nav = $("#stageTabs");
+  nav.hidden = n < 2;
+  const order = [...Array(n).keys()].reverse(); // 最新在最前
+  nav.innerHTML = order.map(i => {
+    const st = d.stages[i];
+    const label = esc(st.name || ("第 " + (i+1) + " 轮"));
+    return `<button type="button" data-i="${i}" aria-pressed="${i===cur}">${label}${i===n-1 ? '<span class="live">进行中</span>' : ''}</button>`;
+  }).join("");
+  $("#stageHead").hidden = !s.groups;
+  $("#stageName").textContent = s.name || "";
+  $("#stageSub").textContent = s.groups ? `${countOf(s.groups)} 人 · ${s.groups.length} 组 · 每组前 ${s.adv} 名晋级` : "";
+  $("#oldNote").hidden = isLatest();
+  const c = isLatest() ? champion(s) : null;
+  $("#champ").hidden = !c;
+  if (c) $("#champName").textContent = c;
+}
+$("#stageTabs").onclick = e => { const b = e.target.closest("button"); if (!b) return; const i = +b.dataset.i; sel = i === view().stages.length - 1 ? -1 : i; $("#advBox").hidden = true; renderAll(); };
+
 function renderAdminBar(){
   $("#abar").hidden = !admin;
   if (!admin) return;
@@ -347,33 +470,37 @@ function renderAdminBar(){
 }
 function markChanged(){ changes++; renderAdminBar(); renderHeader(); }
 
-function tableHTML(d, gi){
-  const st = standings(d.groups[gi], d.matches[gi]);
+function tableHTML(s, gi){
+  const st = standings(s.groups[gi], s.matches[gi]);
   return `<table><thead><tr><th>#</th><th>名称</th><th>赛</th><th>胜</th><th>平</th><th>负</th><th>净胜</th><th>积分</th></tr></thead><tbody>${
-    st.map((r,i)=>{ const gd=r.gf-r.ga; return `<tr class="${i<d.adv?"adv":""}"><td class="pos num">${i+1}</td><td class="nm" title="${esc(r.n)}">${esc(r.n)}</td><td class="num">${r.p}</td><td class="num">${r.w}</td><td class="num">${r.d}</td><td class="num">${r.l}</td><td class="num ${gd>0?"gd-pos":gd<0?"gd-neg":""}">${gd>0?"+":""}${gd}</td><td class="pts num">${r.pts}</td></tr>`; }).join("")
+    st.map((r,i)=>{ const gd=r.gf-r.ga; return `<tr class="${i<s.adv?"adv":""}"><td class="pos num">${i+1}</td><td class="nm" title="${esc(r.n)}">${esc(r.n)}</td><td class="num">${r.p}</td><td class="num">${r.w}</td><td class="num">${r.d}</td><td class="num">${r.l}</td><td class="num ${gd>0?"gd-pos":gd<0?"gd-neg":""}">${gd>0?"+":""}${gd}</td><td class="pts num">${r.pts}</td></tr>`; }).join("")
   }</tbody></table>`;
 }
-function playedText(d, gi){ return `组内对阵 · 已赛 ${d.matches[gi].filter(done).length}/${d.matches[gi].length}`; }
+const playedText = (s, gi) => `组内对阵 · 已赛 ${s.matches[gi].filter(done).length}/${s.matches[gi].length}`;
+const groupLabel = (s, gi) => s.groups.length === 1 ? (s.name || "决赛") : (LETTERS[gi] || gi+1) + " 组";
 
 function renderGroups(){
-  const d = view();
-  document.querySelectorAll("#scoreTabs button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.v === d.scoreMode); b.disabled = !admin; });
-  $("#modeHint").textContent = d.scoreMode === "match"
+  const s = stage();
+  document.querySelectorAll("#scoreTabs button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.v === s.scoreMode); b.disabled = !admin; });
+  $("#advN").textContent = s.adv;
+  $("#modeHint").textContent = s.scoreMode === "match"
     ? "胜 3 分、平 1 分、负 0 分；同分看净胜分，再看进球数。" + (admin ? "在对阵里填比分，填完点底部「发布」。" : "")
     : "按总分排名。" + (admin ? "点按钮加减分，改完点底部「发布」。" : "");
-  $("#resetBtn").hidden = !admin || !d.groups;
+  $("#adminTools").hidden = !admin || !s.groups;
+  $("#advOpen").hidden = !isLatest();
+  $("#delStageBtn").hidden = !isLatest() || view().stages.length < 2;
   const box = $("#groups");
-  if (!d.groups) {
-    box.innerHTML = `<div class="empty">${admin ? "在上方「赛事设置与抽签」里填好名单，点「一键抽签分组」。" : "还没有抽签分组，请等待组织者发布。"}</div>`;
+  if (!s.groups) {
+    box.innerHTML = `<div class="empty">${admin ? "在上方「本轮设置与抽签」里填好名单，点「一键抽签分组」。" : "还没有抽签分组，请等待组织者发布。"}</div>`;
     return;
   }
-  box.innerHTML = d.groups.map((members, gi) => {
-    const L = LETTERS[gi] || gi+1;
+  box.innerHTML = s.groups.map((members, gi) => {
+    const L = s.groups.length === 1 ? "★" : (LETTERS[gi] || gi+1);
     let body;
-    if (d.scoreMode === "match") {
-      body = `<div class="tbl-wrap" id="tbl-${gi}">${tableHTML(d, gi)}</div>
-      <div class="matches"><div class="mtitle" id="mt-${gi}">${playedText(d, gi)}</div>${
-        d.matches[gi].map((m, mi) => {
+    if (s.scoreMode === "match") {
+      body = `<div class="tbl-wrap" id="tbl-${gi}">${tableHTML(s, gi)}</div>
+      <div class="matches"><div class="mtitle" id="mt-${gi}">${playedText(s, gi)}</div>${
+        s.matches[gi].map((m, mi) => {
           const ok = done(m), aw = ok && +m.sa > +m.sb, bw = ok && +m.sb > +m.sa;
           const mid = admin
             ? `<span class="sc"><input class="score-in num" inputmode="numeric" id="s-${gi}-${mi}-a" data-g="${gi}" data-m="${mi}" data-s="sa" value="${esc(m.sa)}" aria-label="${esc(m.a)} 得分"><span class="colon">:</span><input class="score-in num" inputmode="numeric" id="s-${gi}-${mi}-b" data-g="${gi}" data-m="${mi}" data-s="sb" value="${esc(m.sb)}" aria-label="${esc(m.b)} 得分"></span>`
@@ -382,99 +509,168 @@ function renderGroups(){
         }).join("")
       }</div>`;
     } else {
-      body = pointsRows(d, gi).map((r,k) => `<div class="prow ${k<d.adv?"adv":""}"><span class="pos num">${k+1}</span><span style="font-weight:500">${esc(r.n)}</span>${
+      body = pointsRows(s, gi).map((r,k) => `<div class="prow ${k<s.adv?"adv":""}"><span class="pos num">${k+1}</span><span style="font-weight:500">${esc(r.n)}</span>${
         admin ? `<span class="steps"><button type="button" class="minus" data-g="${gi}" data-i="${r.i}" data-d="-1" aria-label="${esc(r.n)} 减 1 分">−1</button><button type="button" data-g="${gi}" data-i="${r.i}" data-d="1" aria-label="${esc(r.n)} 加 1 分">+1</button><button type="button" data-g="${gi}" data-i="${r.i}" data-d="3" aria-label="${esc(r.n)} 加 3 分">+3</button></span>` : `<span></span>`
       }<span class="ppts num">${r.v}</span></div>`).join("");
     }
-    return `<article class="group"><div class="ghead"><span class="gletter">${L}</span><span class="gname">${L} 组</span><span class="gsub">${members.length} 人</span></div>${body}</article>`;
+    return `<article class="group"><div class="ghead"><span class="gletter">${L}</span><span class="gname">${esc(groupLabel(s, gi))}</span><span class="gsub">${members.length} 人</span></div>${body}</article>`;
   }).join("");
 }
 
-/* ----- 设置面板（管理员） ----- */
-const SEG = [2,4,6,8];
+/* ----- 本轮设置（管理员） ----- */
+const SEG = [1,2,4,8];
+function perGroupText(n, g){
+  if (!n) return "";
+  const lo = Math.floor(n/g), hi = Math.ceil(n/g);
+  if (g > n) return "组数比人数还多，请减少组数";
+  if (lo === hi) return lo === 2 ? `两两对决，共 ${g} 场` : `每组 ${lo} 人，组内每人赛 ${lo-1} 场，共 ${g*lo*(lo-1)/2} 场`;
+  return `每组 ${lo}–${hi} 人（除不尽，有的组多一人）`;
+}
+function segOptions(n){ // 常用组数 + 两两对决
+  const opts = new Set(SEG); if (n >= 4 && n % 2 === 0) opts.add(n/2);
+  return [...opts].filter(v => !n || v <= n).sort((a,b)=>a-b);
+}
 function renderSetup(){
   $("#setupBox").hidden = !admin;
   if (!admin) return;
-  const d = draft;
-  if (document.activeElement !== $("#titleIn")) $("#titleIn").value = d.title || "";
-  if (document.activeElement !== $("#namesIn")) $("#namesIn").value = (d.names || []).join("\n");
-  $("#groupSeg").innerHTML = SEG.map(v => `<button type="button" data-v="${v}" aria-pressed="${d.groupCount===v}">${v} 组</button>`).join("");
-  $("#groupCustom").value = d.groupCount;
-  document.querySelectorAll("#modeSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === d.drawMode));
-  $("#advIn").value = d.adv;
-  $("#drawWarn").hidden = !d.groups;
-  $("#drawBtn").textContent = d.groups ? "重新抽签" : "一键抽签分组";
+  const s = stage();
+  if (document.activeElement !== $("#titleIn")) $("#titleIn").value = view().title || "";
+  if (document.activeElement !== $("#namesIn")) $("#namesIn").value = (s.names || []).join("\n");
+  const n = parseNames($("#namesIn").value).length;
+  $("#groupSeg").innerHTML = segOptions(n).map(v => `<button type="button" data-v="${v}" aria-pressed="${s.groupCount===v}">${n && n/v === 2 ? "两两对决" : v + " 组"}</button>`).join("");
+  $("#groupCustom").value = s.groupCount;
+  document.querySelectorAll("#modeSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === s.drawMode));
+  $("#advIn").value = s.adv;
+  $("#drawWarn").hidden = !s.groups;
+  $("#drawBtn").textContent = s.groups ? "重新抽签" : "一键抽签分组";
+  $("#setupSummary").textContent = (s.name ? s.name + " · " : "") + "本轮设置与抽签";
+  $("#sampleBtn").hidden = view().stages.length > 1;
   refreshCount();
 }
 function refreshCount(){
-  const n = parseNames($("#namesIn").value).length, g = draft.groupCount;
+  const n = parseNames($("#namesIn").value).length;
   $("#nCount").textContent = n;
-  let t = "";
-  if (n) {
-    const lo = Math.floor(n/g), hi = Math.ceil(n/g);
-    t = g > n ? "组数比人数还多，请减少组数" : lo === hi ? `每组 ${lo} 人，组内每人赛 ${lo-1} 场，共 ${g*lo*(lo-1)/2} 场` : `每组 ${lo}–${hi} 人（除不尽，有的组多一人）`;
-  }
-  $("#perGroup").textContent = t;
+  $("#perGroup").textContent = perGroupText(n, stage().groupCount);
 }
 $("#titleIn").addEventListener("input", e => { draft.title = e.target.value; markChanged(); });
-$("#namesIn").addEventListener("input", () => { draft.names = parseNames($("#namesIn").value); refreshCount(); markChanged(); });
-$("#sampleBtn").onclick = () => { $("#namesIn").value = SAMPLE.join("\n"); draft.names = SAMPLE.slice(); refreshCount(); markChanged(); };
-$("#clearBtn").onclick = () => { $("#namesIn").value = ""; draft.names = []; refreshCount(); markChanged(); };
-$("#groupSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; draft.groupCount = +b.dataset.v; renderSetup(); markChanged(); };
-$("#groupCustom").addEventListener("change", e => { draft.groupCount = Math.max(1, Math.min(26, +e.target.value || 1)); renderSetup(); markChanged(); });
-$("#modeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; draft.drawMode = b.dataset.v; renderSetup(); markChanged(); };
-$("#advIn").addEventListener("change", e => { draft.adv = Math.max(0, Math.min(10, +e.target.value || 0)); renderHeader(); renderGroups(); markChanged(); });
+$("#namesIn").addEventListener("input", () => { stage().names = parseNames($("#namesIn").value); refreshCount(); markChanged(); });
+$("#namesIn").addEventListener("change", renderSetup);
+$("#sampleBtn").onclick = () => { $("#namesIn").value = SAMPLE.join("\n"); stage().names = SAMPLE.slice(); renderSetup(); markChanged(); };
+$("#clearBtn").onclick = () => { $("#namesIn").value = ""; stage().names = []; renderSetup(); markChanged(); };
+$("#groupSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; stage().groupCount = +b.dataset.v; renderSetup(); markChanged(); };
+$("#groupCustom").addEventListener("change", e => { stage().groupCount = Math.max(1, Math.min(64, +e.target.value || 1)); renderSetup(); markChanged(); });
+$("#modeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; stage().drawMode = b.dataset.v; renderSetup(); markChanged(); };
+$("#advIn").addEventListener("change", e => { stage().adv = Math.max(0, Math.min(10, +e.target.value || 0)); renderAll(); markChanged(); });
 $("#drawBtn").onclick = () => {
-  const names = parseNames($("#namesIn").value), g = draft.groupCount;
+  const s = stage(), names = parseNames($("#namesIn").value), g = s.groupCount;
   if (names.length < 2) return toast("请先填入至少 2 个名字");
   if (g > names.length) return toast("组数比人数多了，请减少组数");
-  if (draft.groups && !confirm("重新抽签会清空所有比分，确定吗？")) return;
-  draft.names = names;
-  draft.groups = drawGroups(names, g, draft.drawMode);
-  draft.matches = draft.groups.map(makeMatches);
-  draft.pts = draft.groups.map(gr => gr.map(() => 0));
-  renderSetup(); renderGroups(); markChanged();
+  if (s.groups && !confirm("重新抽签会清空本轮所有比分，确定吗？")) return;
+  fillDraw(s, names);
+  renderAll(); markChanged();
   $("#setupBox").open = false;
-  toast(`已分成 ${g} 组，确认无误后点底部「发布」`);
+  toast(`${s.name}：已分成 ${g} 组，确认无误后点底部「发布」`, 3000);
+};
+
+/* ----- 晋级下一轮（管理员） ----- */
+let nextCfg = null;
+function renderAdv(){
+  if ($("#advBox").hidden || !nextCfg) return;
+  const n = parseNames($("#advNames").value).length;
+  $("#advCount").textContent = n;
+  $("#advStageName").textContent = n ? stageName(n) : "-";
+  $("#advGroupSeg").innerHTML = segOptions(n).map(v => `<button type="button" data-v="${v}" aria-pressed="${nextCfg.groupCount===v}">${n && n/v === 2 ? "两两对决" : v + " 组"}</button>`).join("");
+  $("#advGroupCustom").value = nextCfg.groupCount;
+  document.querySelectorAll("#advModeSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === nextCfg.drawMode));
+  $("#advNextAdv").value = nextCfg.adv;
+  $("#advPerGroup").textContent = perGroupText(n, nextCfg.groupCount);
+}
+function defaultAdvFor(n, g){ return Math.ceil(n / g) <= 2 ? 1 : 2; }
+$("#advOpen").onclick = () => {
+  const s = stage(), q = qualifiers(s), n = q.length;
+  if (n < 2) return toast("晋级人数不足 2 人，请先调整每组晋级名额");
+  const g = n >= 4 ? n / 2 === Math.floor(n / 2) ? n / 2 : Math.max(1, Math.floor(n / 4)) : 1;
+  nextCfg = { groupCount: g, drawMode: "pots", adv: defaultAdvFor(n, g) };
+  $("#advNames").value = q.join("\n");
+  $("#advIntro").textContent = `根据「${s.name}」当前排名，每组前 ${s.adv} 名共 ${n} 人晋级。确认后会新建一轮，「${s.name}」的结果保留在后面的页签里。`;
+  const left = unfinished(s);
+  $("#advWarn").hidden = !left;
+  $("#advWarn").textContent = left ? `注意：本轮还有 ${left} 场比赛没填比分，排名可能还会变。平局需要手动决定谁晋级时，直接在下面名单里调整。` : "";
+  $("#advBox").hidden = false;
+  renderAdv();
+  $("#advBox").scrollIntoView({ behavior: "smooth", block: "start" });
+};
+$("#advCancel").onclick = () => { $("#advBox").hidden = true; };
+$("#advNames").addEventListener("input", () => {
+  const n = parseNames($("#advNames").value).length;
+  if (nextCfg.groupCount > n) nextCfg.groupCount = Math.max(1, Math.floor(n / 2));
+  renderAdv();
+});
+$("#advGroupSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; nextCfg.groupCount = +b.dataset.v; nextCfg.adv = defaultAdvFor(parseNames($("#advNames").value).length, nextCfg.groupCount); renderAdv(); };
+$("#advGroupCustom").addEventListener("change", e => { nextCfg.groupCount = Math.max(1, Math.min(64, +e.target.value || 1)); renderAdv(); });
+$("#advModeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; nextCfg.drawMode = b.dataset.v; renderAdv(); };
+$("#advNextAdv").addEventListener("change", e => { nextCfg.adv = Math.max(0, Math.min(10, +e.target.value || 0)); renderAdv(); });
+$("#advGo").onclick = () => {
+  const names = parseNames($("#advNames").value), g = nextCfg.groupCount;
+  if (names.length < 2) return toast("晋级名单至少要 2 人");
+  if (g > names.length) return toast("组数比人数多了，请减少组数");
+  if (!confirm(`确认用这 ${names.length} 人抽签，生成「${stageName(names.length)}」？`)) return;
+  const s = newStage({ groupCount: g, drawMode: nextCfg.drawMode, adv: nextCfg.adv, scoreMode: stage().scoreMode });
+  fillDraw(s, names);
+  draft.stages.push(s);
+  sel = -1;
+  $("#advBox").hidden = true;
+  renderAll(); markChanged();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  toast(`已生成「${s.name}」，确认无误后点底部「发布」`, 3500);
+};
+$("#delStageBtn").onclick = () => {
+  const s = stage();
+  if (!confirm(`删除「${s.name || "这一轮"}」？上一轮会重新变成进行中。`)) return;
+  draft.stages.pop(); sel = -1; renderAll(); markChanged(); toast("已删除，点「发布」后生效");
 };
 
 /* ----- 录分（管理员） ----- */
 $("#groups").addEventListener("input", e => {
   const el = e.target; if (!admin || !el.classList.contains("score-in")) return;
   const v = el.value.replace(/[^\d]/g, "").slice(0, 3); el.value = v;
-  const gi = +el.dataset.g, m = draft.matches[gi][+el.dataset.m];
+  const s = stage(), gi = +el.dataset.g, m = s.matches[gi][+el.dataset.m];
   m[el.dataset.s] = v;
-  $("#tbl-" + gi).innerHTML = tableHTML(draft, gi);
+  $("#tbl-" + gi).innerHTML = tableHTML(s, gi);
   const row = el.closest(".match"), ok = done(m);
   row.classList.toggle("done", ok);
   row.querySelector(".a").classList.toggle("w", ok && +m.sa > +m.sb);
   row.querySelector(".b").classList.toggle("w", ok && +m.sb > +m.sa);
-  $("#mt-" + gi).textContent = playedText(draft, gi);
+  $("#mt-" + gi).textContent = playedText(s, gi);
   markChanged();
+  renderStages();
 });
 $("#groups").addEventListener("click", e => {
   const b = e.target.closest(".steps button"); if (!b || !admin) return;
-  const gi = +b.dataset.g, i = +b.dataset.i;
-  draft.pts[gi][i] = (draft.pts[gi][i] || 0) + (+b.dataset.d);
+  const s = stage(), gi = +b.dataset.g, i = +b.dataset.i;
+  s.pts[gi][i] = (s.pts[gi][i] || 0) + (+b.dataset.d);
   renderGroups(); markChanged();
 });
-$("#scoreTabs").onclick = e => { const b = e.target.closest("button"); if (!b || !admin) return; draft.scoreMode = b.dataset.v; renderGroups(); markChanged(); };
+$("#scoreTabs").onclick = e => { const b = e.target.closest("button"); if (!b || !admin) return; stage().scoreMode = b.dataset.v; renderAll(); markChanged(); };
 $("#resetBtn").onclick = () => {
-  if (!confirm("分组不变，所有比分和积分归零，确定吗？")) return;
-  draft.matches.forEach(g => g.forEach(m => { m.sa = ""; m.sb = ""; }));
-  draft.pts = draft.groups.map(g => g.map(() => 0));
-  renderGroups(); markChanged(); toast("已清零，点「发布」后生效");
+  const s = stage();
+  if (!confirm(`「${s.name}」分组不变，所有比分和积分归零，确定吗？`)) return;
+  s.matches.forEach(g => g.forEach(m => { m.sa = ""; m.sb = ""; }));
+  s.pts = s.groups.map(g => g.map(() => 0));
+  renderAll(); markChanged(); toast("已清零，点「发布」后生效");
 };
 
 /* ----- 复制结果 ----- */
 function resultText(){
-  const d = view(); if (!d.groups) return "";
-  const lines = ["【" + (d.title || "积分榜") + "】"];
-  d.groups.forEach((members, gi) => {
-    lines.push("", (LETTERS[gi] || gi+1) + " 组");
-    if (d.scoreMode === "points") pointsRows(d, gi).forEach((r,k) => lines.push(`${k+1}. ${r.n}  ${r.v}分${k<d.adv?" ✓":""}`));
-    else standings(members, d.matches[gi]).forEach((r,k) => lines.push(`${k+1}. ${r.n}  ${r.w}胜${r.d}平${r.l}负  ${r.pts}分${k<d.adv?" ✓":""}`));
+  const d = view(), s = stage(); if (!s.groups) return "";
+  const lines = ["【" + (d.title || "积分榜") + (s.name ? " · " + s.name : "") + "】"];
+  s.groups.forEach((members, gi) => {
+    lines.push("", groupLabel(s, gi));
+    if (s.scoreMode === "points") pointsRows(s, gi).forEach((r,k) => lines.push(`${k+1}. ${r.n}  ${r.v}分${k<s.adv?" ✓":""}`));
+    else standings(members, s.matches[gi]).forEach((r,k) => lines.push(`${k+1}. ${r.n}  ${r.w}胜${r.d}平${r.l}负  ${r.pts}分${k<s.adv?" ✓":""}`));
   });
+  const c = isLatest() ? champion(s) : null;
+  if (c) lines.push("", "冠军：" + c);
   lines.push("", location.href.split("?")[0].split("#")[0]);
   return lines.join("\n");
 }
@@ -487,7 +683,7 @@ $("#copyBtn").onclick = () => {
 };
 
 /* ----- 登录 / 发布 ----- */
-function renderAll(){ renderHeader(); renderSetup(); renderGroups(); renderAdminBar(); }
+function renderAll(){ renderHeader(); renderStages(); renderSetup(); renderGroups(); renderAdminBar(); }
 
 $("#adminBtn").onclick = () => {
   if (!CONFIG.owner || !CONFIG.repo) { toast("没识别到 GitHub 仓库：请把网页放到 GitHub Pages 上，或在代码顶部 CONFIG 里填写 owner 和 repo", 5000); return; }
@@ -506,7 +702,7 @@ async function login(t, remember){
     admin = true; changes = 0;
     if (remember) store("league-token", t);
     $("#loginBox").hidden = true; $("#tokenIn").value = "";
-    $("#setupBox").open = !draft.groups;
+    $("#setupBox").open = !stage().groups;
     renderAll();
     toast("已进入管理模式");
   } catch (err) {
@@ -521,7 +717,6 @@ $("#publishBtn").onclick = async () => {
   if (!changes || busy) return;
   busy = true; renderAdminBar(); $("#abarSt").textContent = "正在发布…";
   try {
-    draft.names = parseNames($("#namesIn").value);
     draft.updatedAt = new Date().toISOString();
     await saveLatest(draft);
     data = clone(draft); changes = 0;
@@ -539,12 +734,13 @@ $("#publishBtn").onclick = async () => {
 };
 $("#discardBtn").onclick = async () => {
   if (!confirm("放弃所有未发布的修改？")) return;
-  try { draft = await loadLatest(); } catch (e) { draft = clone(data || EMPTY); }
-  changes = 0; renderAll();
+  try { draft = await loadLatest(); } catch (e) { draft = clone(data || normalize(null)); }
+  changes = 0; sel = -1; $("#advBox").hidden = true; renderAll();
 };
 $("#logoutBtn").onclick = () => {
   if (changes && !confirm("还有未发布的修改，退出会丢失。确定退出？")) return;
-  admin = false; token = null; draft = null; changes = 0; store("league-token", null);
+  admin = false; token = null; draft = null; changes = 0; sel = -1; store("league-token", null);
+  $("#advBox").hidden = true;
   renderAll(); refresh();
 };
 window.addEventListener("beforeunload", e => { if (admin && changes) { e.preventDefault(); e.returnValue = ""; } });
@@ -560,7 +756,9 @@ async function refresh(manual){
   try {
     const d = await loadPublic();
     const changed = !data || d.updatedAt !== data.updatedAt;
+    const newStageAdded = data && d.stages.length !== data.stages.length;
     data = d;
+    if (newStageAdded) sel = -1; // 有新一轮时自动跳到最新
     if (changed) renderAll();
     if (manual) toast(changed ? "已更新" : "已经是最新");
   } catch (e) {
