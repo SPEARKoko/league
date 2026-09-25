@@ -191,21 +191,14 @@ textarea.out{min-height:120px}
         <div class="hint">共 <b id="nCount">0</b> 人 · <button type="button" class="link" id="sampleBtn">填入32人示例</button> <button type="button" class="link" id="clearBtn">清空</button></div>
       </div>
       <div class="opts">
-        <div>
+        <p class="notice" id="formatNote" hidden style="margin:0"></p>
+        <div id="groupBlock">
           <span class="lbl">分几组</span>
           <div class="seg" id="groupSeg"></div>
           <div class="row" style="margin-top:8px"><span class="hint" style="margin:0">自定义</span><input id="groupCustom" class="sm num" type="number" min="1" max="64" aria-label="自定义组数"></div>
           <p class="hint" id="perGroup"></p>
         </div>
-        <div>
-          <span class="lbl">抽签方式</span>
-          <div class="seg" id="modeSeg">
-            <button type="button" data-v="random">完全随机</button>
-            <button type="button" data-v="pots">分档抽签</button>
-          </div>
-          <p class="hint">分档抽签像世界杯：名单按顺序分档，排在前面的是种子，每组每档各抽一人。</p>
-        </div>
-        <div class="row">
+        <div class="row" id="advInRow">
           <label class="lbl" for="advIn" style="margin:0">每组晋级名额</label>
           <input id="advIn" class="sm num" type="number" min="0" max="10">
         </div>
@@ -224,26 +217,23 @@ textarea.out{min-height:120px}
     <p class="notice" id="advWarn" hidden style="margin:10px 0 0"></p>
     <div class="advgrid">
       <div>
-        <label class="lbl" for="advNames">晋级名单（可以手动调整，排在前面的是种子）</label>
+        <label class="lbl" for="advNames">晋级名单（可以手动增删调整）</label>
         <textarea id="advNames" spellcheck="false"></textarea>
         <div class="hint">共 <b id="advCount">0</b> 人 · 下一轮叫「<b id="advStageName"></b>」</div>
       </div>
       <div class="opts">
         <div>
-          <span class="lbl">下一轮分几组</span>
+          <span class="lbl">下一轮赛制</span>
+          <div class="seg" id="advFmtSeg"></div>
+          <p class="hint" id="advFmtHint"></p>
+        </div>
+        <div id="advGroupBlock">
+          <span class="lbl">分几组</span>
           <div class="seg" id="advGroupSeg"></div>
           <div class="row" style="margin-top:8px"><span class="hint" style="margin:0">自定义</span><input id="advGroupCustom" class="sm num" type="number" min="1" max="64" aria-label="下一轮自定义组数"></div>
           <p class="hint" id="advPerGroup"></p>
         </div>
-        <div>
-          <span class="lbl">抽签方式</span>
-          <div class="seg" id="advModeSeg">
-            <button type="button" data-v="pots">分档抽签</button>
-            <button type="button" data-v="random">完全随机</button>
-          </div>
-          <p class="hint">默认分档：各组第一名互相避开，不会提前碰面。</p>
-        </div>
-        <div class="row">
+        <div class="row" id="advNextAdvRow">
           <label class="lbl" for="advNextAdv" style="margin:0">下一轮每组晋级名额</label>
           <input id="advNextAdv" class="sm num" type="number" min="0" max="10">
         </div>
@@ -306,7 +296,7 @@ const SAMPLE = ["西班牙","阿根廷","法国","英格兰","巴西","葡萄牙
 
 /* 数据结构：{ title, updatedAt, stages: [第1轮, 第2轮, …] }，最后一轮是正在进行的 */
 function newStage(opts){
-  return Object.assign({ name: "", names: [], groupCount: 4, drawMode: "random", adv: 2, scoreMode: "match", groups: null, matches: null, pts: null, createdAt: null }, opts || {});
+  return Object.assign({ name: "", format: "groups", names: [], groupCount: 4, drawMode: "random", adv: 2, scoreMode: "match", groups: null, matches: null, pts: null, createdAt: null }, opts || {});
 }
 // 兼容旧版（没有 stages 的单轮数据）
 function normalize(raw){
@@ -345,20 +335,36 @@ function parseNames(t){
   return out;
 }
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-function drawGroups(names, g, mode){
+function drawGroups(names, g){
   const groups = Array.from({length:g}, () => []);
-  if (mode === "pots") {
-    for (let p=0; p<names.length; p+=g) {
-      const pot = shuffle(names.slice(p, p+g)), slots = shuffle([...Array(g).keys()]);
-      pot.forEach((n,i) => groups[slots[i]].push(n));
-    }
-  } else shuffle(names).forEach((n,i) => groups[i%g].push(n));
+  shuffle(names).forEach((n,i) => groups[i%g].push(n)); // 每次完全随机
   return groups;
 }
 function makeMatches(m){ const r=[]; for(let i=0;i<m.length;i++) for(let j=i+1;j<m.length;j++) r.push({a:m[i],b:m[j],sa:"",sb:""}); return r; }
+/* 赛制：groups 小组赛 | cross 小组第一对第二（同组不相遇）| pairs 随机两两对决 | rr 单组循环赛 */
+const FORMATS = {
+  groups: "小组赛",
+  cross: "第一对第二",
+  pairs: "随机两两对决",
+  rr: "循环赛"
+};
+// 名单前一半是各组第 1，后一半是对应顺序的各组第 2；随机配对且不和同组的人碰面
+function crossPairs(names){
+  const G = names.length / 2, W = names.slice(0, G), R = names.slice(G), idx = [...Array(G).keys()];
+  for (let t = 0; t < 1000; t++) {
+    const p = shuffle(idx);
+    if (G < 2 || p.every((r, i) => r !== i)) return shuffle(W.map((w, i) => [w, R[p[i]]]));
+  }
+  return W.map((w, i) => [w, R[(i + 1) % G]]);
+}
+function randomPairs(names){ const a = shuffle(names), out = []; for (let i = 0; i < a.length; i += 2) out.push(a.slice(i, i + 2)); return out; }
 function fillDraw(s, names){
   s.names = names;
-  s.groups = drawGroups(names, s.groupCount, s.drawMode);
+  if (s.format === "cross") s.groups = crossPairs(names);
+  else if (s.format === "pairs") s.groups = randomPairs(names);
+  else if (s.format === "rr") s.groups = [shuffle(names)];
+  else s.groups = drawGroups(names, s.groupCount);
+  s.groupCount = s.groups.length;
   s.matches = s.groups.map(makeMatches);
   s.pts = s.groups.map(g => g.map(() => 0));
   s.name = stageName(names.length);
@@ -380,7 +386,7 @@ function pointsRows(s, gi){
   return s.groups[gi].map((n,i)=>({n,i,v:pts[i]||0})).sort((x,y)=> y.v-x.v || x.i-y.i);
 }
 function ranked(s, gi){ return s.scoreMode === "points" ? pointsRows(s, gi).map(r => r.n) : standings(s.groups[gi], s.matches[gi]).map(r => r.n); }
-// 晋级名单：先排各组第 1 名，再排各组第 2 名……（方便下一轮分档）
+// 晋级名单：先列各组第 1 名，再列各组第 2 名……（只是列出顺序，下一轮抽签完全随机）
 function qualifiers(s){
   const lists = s.groups.map((_, gi) => ranked(s, gi).slice(0, s.adv)), out = [];
   for (let k = 0; k < s.adv; k++) lists.forEach(l => { if (l[k] != null) out.push(l[k]); });
@@ -389,6 +395,10 @@ function qualifiers(s){
 function unfinished(s){
   if (s.scoreMode !== "match") return 0;
   return s.matches.reduce((n, g) => n + g.filter(m => !done(m)).length, 0);
+}
+function ties(s){ // 两人对决打平、需要手动决定晋级者的场数
+  if (s.scoreMode !== "match") return 0;
+  return s.groups.reduce((n, g, gi) => n + (g.length === 2 && s.matches[gi][0] && done(s.matches[gi][0]) && +s.matches[gi][0].sa === +s.matches[gi][0].sb ? 1 : 0), 0);
 }
 function champion(s){
   if (!s || !s.groups || s.groups.length !== 1 || s.adv !== 1 || s.scoreMode !== "match") return null;
@@ -453,7 +463,7 @@ function renderStages(){
   }).join("");
   $("#stageHead").hidden = !s.groups;
   $("#stageName").textContent = s.name || "";
-  $("#stageSub").textContent = s.groups ? `${countOf(s.groups)} 人 · ${s.groups.length} 组 · 每组前 ${s.adv} 名晋级` : "";
+  $("#stageSub").textContent = !s.groups ? "" : isKO(s) ? `${countOf(s.groups)} 人 · ${FORMATS[s.format]} · 共 ${s.groups.length} 场，胜者晋级` : s.format === "rr" ? `${countOf(s.groups)} 人循环赛 · 积分第一名夺冠` : `${countOf(s.groups)} 人 · ${s.groups.length} 组 · 每组前 ${s.adv} 名晋级`;
   $("#oldNote").hidden = isLatest();
   const c = isLatest() ? champion(s) : null;
   $("#champ").hidden = !c;
@@ -477,7 +487,8 @@ function tableHTML(s, gi){
   }</tbody></table>`;
 }
 const playedText = (s, gi) => `组内对阵 · 已赛 ${s.matches[gi].filter(done).length}/${s.matches[gi].length}`;
-const groupLabel = (s, gi) => s.groups.length === 1 ? (s.name || "决赛") : (LETTERS[gi] || gi+1) + " 组";
+const isKO = s => s.format === "cross" || s.format === "pairs";
+const groupLabel = (s, gi) => s.groups.length === 1 ? (s.name || "决赛") + (s.format === "rr" ? " · 循环赛" : "") : isKO(s) ? "第 " + (gi+1) + " 场" : (LETTERS[gi] || gi+1) + " 组";
 
 function renderGroups(){
   const s = stage();
@@ -487,7 +498,7 @@ function renderGroups(){
     ? "胜 3 分、平 1 分、负 0 分；同分看净胜分，再看进球数。" + (admin ? "在对阵里填比分，填完点底部「发布」。" : "")
     : "按总分排名。" + (admin ? "点按钮加减分，改完点底部「发布」。" : "");
   $("#adminTools").hidden = !admin || !s.groups;
-  $("#advOpen").hidden = !isLatest();
+  $("#advOpen").hidden = !isLatest() || !s.groups || (s.groups.length === 1 && s.adv <= 1); // 决赛/循环赛是最后一轮
   $("#delStageBtn").hidden = !isLatest() || view().stages.length < 2;
   const box = $("#groups");
   if (!s.groups) {
@@ -495,7 +506,7 @@ function renderGroups(){
     return;
   }
   box.innerHTML = s.groups.map((members, gi) => {
-    const L = s.groups.length === 1 ? "★" : (LETTERS[gi] || gi+1);
+    const L = s.groups.length === 1 ? "★" : isKO(s) ? (gi+1) : (LETTERS[gi] || gi+1);
     let body;
     if (s.scoreMode === "match") {
       body = `<div class="tbl-wrap" id="tbl-${gi}">${tableHTML(s, gi)}</div>
@@ -539,8 +550,14 @@ function renderSetup(){
   const n = parseNames($("#namesIn").value).length;
   $("#groupSeg").innerHTML = segOptions(n).map(v => `<button type="button" data-v="${v}" aria-pressed="${s.groupCount===v}">${n && n/v === 2 ? "两两对决" : v + " 组"}</button>`).join("");
   $("#groupCustom").value = s.groupCount;
-  document.querySelectorAll("#modeSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === s.drawMode));
   $("#advIn").value = s.adv;
+  const fmt = s.format || "groups";
+  $("#groupBlock").hidden = fmt !== "groups";
+  $("#advInRow").hidden = fmt !== "groups";
+  $("#formatNote").hidden = fmt === "groups";
+  $("#formatNote").textContent = fmt === "cross" ? "本轮赛制：第一对第二。名单前一半是各组第一（按组顺序），后一半是对应的各组第二。重新抽签会重新随机配对，同组的不会碰面。"
+    : fmt === "pairs" ? "本轮赛制：随机两两对决，每场胜者晋级。重新抽签会重新随机配对。"
+    : fmt === "rr" ? "本轮赛制：所有人一组循环赛，积分第一名是冠军。" : "";
   $("#drawWarn").hidden = !s.groups;
   $("#drawBtn").textContent = s.groups ? "重新抽签" : "一键抽签分组";
   $("#setupSummary").textContent = (s.name ? s.name + " · " : "") + "本轮设置与抽签";
@@ -559,29 +576,52 @@ $("#sampleBtn").onclick = () => { $("#namesIn").value = SAMPLE.join("\n"); stage
 $("#clearBtn").onclick = () => { $("#namesIn").value = ""; stage().names = []; renderSetup(); markChanged(); };
 $("#groupSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; stage().groupCount = +b.dataset.v; renderSetup(); markChanged(); };
 $("#groupCustom").addEventListener("change", e => { stage().groupCount = Math.max(1, Math.min(64, +e.target.value || 1)); renderSetup(); markChanged(); });
-$("#modeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; stage().drawMode = b.dataset.v; renderSetup(); markChanged(); };
 $("#advIn").addEventListener("change", e => { stage().adv = Math.max(0, Math.min(10, +e.target.value || 0)); renderAll(); markChanged(); });
 $("#drawBtn").onclick = () => {
   const s = stage(), names = parseNames($("#namesIn").value), g = s.groupCount;
   if (names.length < 2) return toast("请先填入至少 2 个名字");
-  if (g > names.length) return toast("组数比人数多了，请减少组数");
+  if ((s.format === "groups" || !s.format) && g > names.length) return toast("组数比人数多了，请减少组数");
+  if (isKO(s) && names.length % 2) return toast("两两对决需要偶数人数");
   if (s.groups && !confirm("重新抽签会清空本轮所有比分，确定吗？")) return;
   fillDraw(s, names);
   renderAll(); markChanged();
   $("#setupBox").open = false;
-  toast(`${s.name}：已分成 ${g} 组，确认无误后点底部「发布」`, 3000);
+  toast(`${s.name}：已重新抽签，确认无误后点底部「发布」`, 3000);
 };
 
 /* ----- 晋级下一轮（管理员） ----- */
-let nextCfg = null;
+let nextCfg = null, prevStage = null;
+function fmtOptions(n){
+  const o = [];
+  if (n % 2 === 0 && prevStage && (prevStage.format || "groups") === "groups" && prevStage.adv === 2 && prevStage.groups.length >= 2 && n === prevStage.groups.length * 2) o.push("cross");
+  if (n % 2 === 0 && n >= 2) o.push("pairs");
+  o.push("rr", "groups");
+  return o;
+}
+function defaultFormat(n){
+  const o = fmtOptions(n);
+  if (n === 4) return "rr";              // 4 强打循环赛
+  if (o.includes("cross")) return "cross"; // 小组赛后：第一对第二
+  if (o.includes("pairs")) return "pairs"; // 之后：胜者随机两两对决
+  return "groups";
+}
 function renderAdv(){
   if ($("#advBox").hidden || !nextCfg) return;
-  const n = parseNames($("#advNames").value).length;
+  const n = parseNames($("#advNames").value).length, opts = fmtOptions(n);
+  if (!opts.includes(nextCfg.format)) nextCfg.format = defaultFormat(n);
   $("#advCount").textContent = n;
   $("#advStageName").textContent = n ? stageName(n) : "-";
+  $("#advFmtSeg").innerHTML = opts.map(f => `<button type="button" data-v="${f}" aria-pressed="${nextCfg.format===f}">${FORMATS[f]}</button>`).join("");
+  const f = nextCfg.format;
+  $("#advFmtHint").textContent =
+    f === "cross" ? `小组第一对另一组的小组第二，随机配对，同组不相遇。共 ${n/2} 场，胜者晋级。名单前一半是小组第一、后一半是对应的小组第二。`
+    : f === "pairs" ? `随机两两对决，共 ${n/2} 场，胜者晋级。`
+    : f === "rr" ? `${n} 人一组循环赛，每人赛 ${n-1} 场，共 ${n*(n-1)/2} 场，积分第一名是冠军。`
+    : "按下面的组数随机分组，打小组赛。";
+  $("#advGroupBlock").hidden = f !== "groups";
+  $("#advNextAdvRow").hidden = f !== "groups";
   $("#advGroupSeg").innerHTML = segOptions(n).map(v => `<button type="button" data-v="${v}" aria-pressed="${nextCfg.groupCount===v}">${n && n/v === 2 ? "两两对决" : v + " 组"}</button>`).join("");
   $("#advGroupCustom").value = nextCfg.groupCount;
-  document.querySelectorAll("#advModeSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === nextCfg.drawMode));
   $("#advNextAdv").value = nextCfg.adv;
   $("#advPerGroup").textContent = perGroupText(n, nextCfg.groupCount);
 }
@@ -589,13 +629,16 @@ function defaultAdvFor(n, g){ return Math.ceil(n / g) <= 2 ? 1 : 2; }
 $("#advOpen").onclick = () => {
   const s = stage(), q = qualifiers(s), n = q.length;
   if (n < 2) return toast("晋级人数不足 2 人，请先调整每组晋级名额");
-  const g = n >= 4 ? n / 2 === Math.floor(n / 2) ? n / 2 : Math.max(1, Math.floor(n / 4)) : 1;
-  nextCfg = { groupCount: g, drawMode: "pots", adv: defaultAdvFor(n, g) };
+  prevStage = s;
+  const g = Math.max(1, Math.floor(n / 4));
+  nextCfg = { format: defaultFormat(n), groupCount: g, adv: defaultAdvFor(n, g) };
   $("#advNames").value = q.join("\n");
-  $("#advIntro").textContent = `根据「${s.name}」当前排名，每组前 ${s.adv} 名共 ${n} 人晋级。确认后会新建一轮，「${s.name}」的结果保留在后面的页签里。`;
-  const left = unfinished(s);
-  $("#advWarn").hidden = !left;
-  $("#advWarn").textContent = left ? `注意：本轮还有 ${left} 场比赛没填比分，排名可能还会变。平局需要手动决定谁晋级时，直接在下面名单里调整。` : "";
+  $("#advIntro").textContent = `根据「${s.name}」当前排名，共 ${n} 人晋级。确认后会新建一轮，「${s.name}」的结果保留在后面的页签里。`;
+  const left = unfinished(s), tie = ties(s), msgs = [];
+  if (left) msgs.push(`本轮还有 ${left} 场比赛没填比分，排名可能还会变。`);
+  if (tie) msgs.push(`有 ${tie} 场对决打平，请在下面名单里把实际晋级的人改对（比如点球胜者）。`);
+  $("#advWarn").hidden = !msgs.length;
+  $("#advWarn").textContent = msgs.length ? "注意：" + msgs.join("") : "";
   $("#advBox").hidden = false;
   renderAdv();
   $("#advBox").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -606,16 +649,17 @@ $("#advNames").addEventListener("input", () => {
   if (nextCfg.groupCount > n) nextCfg.groupCount = Math.max(1, Math.floor(n / 2));
   renderAdv();
 });
+$("#advFmtSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; nextCfg.format = b.dataset.v; renderAdv(); };
 $("#advGroupSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; nextCfg.groupCount = +b.dataset.v; nextCfg.adv = defaultAdvFor(parseNames($("#advNames").value).length, nextCfg.groupCount); renderAdv(); };
 $("#advGroupCustom").addEventListener("change", e => { nextCfg.groupCount = Math.max(1, Math.min(64, +e.target.value || 1)); renderAdv(); });
-$("#advModeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; nextCfg.drawMode = b.dataset.v; renderAdv(); };
 $("#advNextAdv").addEventListener("change", e => { nextCfg.adv = Math.max(0, Math.min(10, +e.target.value || 0)); renderAdv(); });
 $("#advGo").onclick = () => {
-  const names = parseNames($("#advNames").value), g = nextCfg.groupCount;
+  const names = parseNames($("#advNames").value), f = nextCfg.format, g = nextCfg.groupCount;
   if (names.length < 2) return toast("晋级名单至少要 2 人");
-  if (g > names.length) return toast("组数比人数多了，请减少组数");
-  if (!confirm(`确认用这 ${names.length} 人抽签，生成「${stageName(names.length)}」？`)) return;
-  const s = newStage({ groupCount: g, drawMode: nextCfg.drawMode, adv: nextCfg.adv, scoreMode: stage().scoreMode });
+  if (f === "groups" && g > names.length) return toast("组数比人数多了，请减少组数");
+  if ((f === "cross" || f === "pairs") && names.length % 2) return toast("两两对决需要偶数人数");
+  if (!confirm(`确认用这 ${names.length} 人（${FORMATS[f]}）生成「${stageName(names.length)}」？`)) return;
+  const s = newStage({ format: f, groupCount: g, adv: f === "groups" ? nextCfg.adv : 1, scoreMode: "match" });
   fillDraw(s, names);
   draft.stages.push(s);
   sel = -1;
