@@ -260,6 +260,7 @@ textarea.out{min-height:120px}
       <button type="button" class="primary" id="advOpen">晋级下一轮 →</button>
       <button type="button" class="danger" id="resetBtn">清零本轮比分</button>
       <button type="button" class="danger" id="delStageBtn">删除这一轮</button>
+      <button type="button" class="danger" id="restartBtn">全部重新开始</button>
     </div>
     <p class="hint" id="modeHint" style="margin:0"></p>
     <div class="groups" id="groups"></div>
@@ -674,6 +675,17 @@ $("#advGo").onclick = () => {
   renderAll(); markChanged();
   window.scrollTo({ top: 0, behavior: "smooth" });
   toast(`已生成「${s.name}」，确认无误后点底部「发布」`, 3500);
+};
+$("#restartBtn").onclick = () => {
+  const first = draft.stages[0];
+  if (!confirm(`全部重新开始？\n\n所有轮次（${draft.stages.map(x => x.name || "未命名").join("、")}）的分组和比分都会清空，回到第一轮。参赛名单保留，你重新抽签就行。`)) return;
+  draft.stages = [newStage({ names: first.names.slice(), groupCount: first.groupCount, adv: first.adv, scoreMode: first.scoreMode })];
+  sel = -1;
+  $("#advBox").hidden = true;
+  renderAll(); markChanged();
+  $("#setupBox").open = true;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  toast("已清空所有轮次。在「本轮设置与抽签」里重新抽签，然后点「发布」", 4000);
 };
 $("#delStageBtn").onclick = () => {
   const s = stage();
