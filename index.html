@@ -9,7 +9,7 @@
 :root{
   --bg:#F3F5F1; --surface:#FFFFFF; --ink:#13241C; --muted:#5E6E66; --line:#DCE3DE;
   --pitch:#0F4D35; --pitch-ink:#FFFFFF; --gold:#C98A0E; --gold-soft:#FBF1DC;
-  --win:#1C7C4E; --lose:#B83B3B; --chip:#E8EEEA; --focus:#C98A0E; --warn-bg:#FFF6E0;
+  --win:#1C7C4E; --lose:#B83B3B; --chip:#E8EEEA; --focus:#C98A0E; --warn-bg:#FFF6E0; --ghost:#9AA8A0;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
@@ -17,25 +17,24 @@
     color-scheme:dark;
     --bg:#0E1512; --surface:#16211C; --ink:#E8EFEA; --muted:#93A59B; --line:#28362F;
     --pitch:#1E7A55; --pitch-ink:#FFFFFF; --gold:#E7AE3A; --gold-soft:#2E2512;
-    --win:#4CC58A; --lose:#EF7B7B; --chip:#223029; --focus:#E7AE3A; --warn-bg:#2B2410;
+    --win:#4CC58A; --lose:#EF7B7B; --chip:#223029; --focus:#E7AE3A; --warn-bg:#2B2410; --ghost:#5F6F67;
   }
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;font-size:15px;line-height:1.6;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(96px + env(safe-area-inset-bottom,0px))}
-.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;font-size:15px;line-height:1.6;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(110px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 .num{font-variant-numeric:tabular-nums;font-family:"DIN Alternate","Roboto Condensed","Arial Narrow",-apple-system,sans-serif}
 button,select,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 14px;font-weight:500}
 button:hover{border-color:var(--muted)}
 button:disabled{opacity:.5;cursor:default}
-button.primary{background:var(--pitch);color:var(--pitch-ink);border-color:var(--pitch);font-weight:700;padding:10px 20px}
+button.primary{background:var(--pitch);color:var(--pitch-ink);border-color:var(--pitch);font-weight:700;padding:10px 18px}
 button.danger{color:var(--lose)}
 button.link{border:0;background:none;padding:2px 6px;color:var(--pitch);font-weight:600}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
-/* header */
 header{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 header img{width:56px;height:56px;border-radius:50%;flex:none}
 .htext{flex:1;min-width:180px}
@@ -43,12 +42,20 @@ h1{margin:0;font-size:26px;font-weight:900;letter-spacing:.02em;line-height:1.2;
 .meta{font-size:12.5px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:2px}
 .hbtns{display:flex;gap:8px}
 
+/* 三个页面 */
+.pages{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--chip);padding:4px;border-radius:12px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.pages button{border:0;background:transparent;border-radius:9px;padding:8px 4px;line-height:1.25;display:flex;flex-direction:column;align-items:center;gap:1px}
+.pages button b{font-size:15px}
+.pages button small{font-size:11.5px;color:var(--muted)}
+.pages button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.pages button[aria-pressed="true"] b{color:var(--pitch)}
+.pages .live{display:inline-block;font-size:10.5px;font-weight:700;background:var(--gold);color:#1a1a1a;border-radius:999px;padding:0 6px;line-height:16px}
+
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
 .lbl{display:block;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:6px}
 .hint{font-size:12.5px;color:var(--muted);margin:6px 0 0}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-input[type=text],input[type=password],textarea,input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg);width:100%}
-input[type=number].sm{width:76px}
+input[type=text],input[type=password],textarea,input[type=number],select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg);width:100%}
 textarea{min-height:180px;resize:vertical;line-height:1.7}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
 .seg button[aria-pressed="true"]{background:var(--pitch);border-color:var(--pitch);color:var(--pitch-ink)}
@@ -60,13 +67,13 @@ details.card>summary::-webkit-details-marker{display:none}
 details.card>summary::before{content:"▸ ";color:var(--muted)}
 details.card[open]>summary::before{content:"▾ "}
 details.card[open]>summary{margin-bottom:14px}
-
-/* login */
 .login{border-color:var(--gold);background:var(--gold-soft)}
 .login h2{margin:0 0 4px;font-size:17px}
 .err{color:var(--lose);font-size:13px;margin-top:6px}
-
-/* toolbar */
+.notice{background:var(--warn-bg);border:1px solid var(--gold);border-radius:10px;padding:10px 14px;font-size:13.5px;margin:0}
+.pagehead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.pagehead h2{margin:0;font-size:22px;font-weight:900}
+.pagehead .sub{font-size:13px;color:var(--muted)}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
 .tabs{display:inline-flex;background:var(--chip);border-radius:10px;padding:3px}
 .tabs button{border:0;background:transparent;border-radius:8px;padding:6px 14px}
@@ -75,14 +82,14 @@ details.card[open]>summary{margin-bottom:14px}
 .legend{font-size:12.5px;color:var(--muted)}
 .legend i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold);margin-right:5px;vertical-align:middle}
 
-/* groups */
+/* 小组 */
 .groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
 @media (max-width:360px){.groups{grid-template-columns:1fr}}
 .group{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .ghead{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--pitch);color:var(--pitch-ink)}
-.gletter{font-weight:800;font-size:22px;width:32px;height:32px;display:grid;place-items:center;border:2px solid currentColor;border-radius:6px}
-.gname{font-weight:700;letter-spacing:.06em}
-.gsub{margin-left:auto;font-size:12px;opacity:.85}
+.gletter{font-weight:800;font-size:20px;min-width:32px;height:32px;padding:0 4px;display:grid;place-items:center;border:2px solid currentColor;border-radius:6px}
+.gname{font-weight:700;letter-spacing:.04em}
+.gsub{margin-left:auto;font-size:12px;opacity:.85;text-align:right;line-height:1.3}
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th{font-size:11.5px;color:var(--muted);font-weight:500;text-align:center;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -102,6 +109,7 @@ tr.adv td.pos::before,.prow.adv .pos::before{content:"";display:inline-block;wid
 .match .a{text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .match .b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .match .w{font-weight:800}
+.match .leg{grid-column:1/-1;font-size:11px;color:var(--muted);padding:0 2px;margin-bottom:-2px}
 .sc{display:flex;align-items:center;gap:4px}
 .sc span.colon{color:var(--muted)}
 .score-in{width:40px;text-align:center;font-size:17px;font-weight:800;border:1px solid var(--line);border-radius:6px;padding:2px 0;background:var(--surface)}
@@ -114,9 +122,54 @@ tr.adv td.pos::before,.prow.adv .pos::before{content:"";display:inline-block;wid
 .steps{display:flex;gap:4px}
 .steps button{padding:3px 0;width:38px;font-size:13px;border-radius:6px}
 .steps .minus{color:var(--lose)}
-.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:28px;text-align:center;color:var(--muted)}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:24px;text-align:center;color:var(--muted)}
 
-/* admin bar */
+/* 对阵图 */
+.bracket-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 12px}
+.bracket{display:flex;gap:26px;min-width:max-content}
+.bcol{display:flex;flex-direction:column;width:156px}
+.bcol h4{margin:0 0 10px;font-size:12.5px;color:var(--muted);letter-spacing:.06em;text-align:center;font-weight:700}
+.bties{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:14px}
+.btie{position:relative;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:13px;cursor:pointer}
+.btie:hover{border-color:var(--muted)}
+.btie .bl{display:flex;align-items:center;gap:6px;padding:5px 8px;min-height:30px}
+.btie .bl+.bl{border-top:1px solid var(--line)}
+.bn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.bn.ph{color:var(--ghost);font-weight:400}
+.btie .bp{font-weight:800;min-width:18px;text-align:right}
+.btie .bl.win .bn{font-weight:800;color:var(--pitch)}
+.btie .bl.lose .bn,.btie .bl.lose .bp{color:var(--ghost)}
+.btie .bcode{position:absolute;top:-8px;left:8px;font-size:10px;background:var(--surface);color:var(--muted);padding:0 4px;border-radius:4px;line-height:14px}
+.bcol:not(:last-child) .btie::after{content:"";position:absolute;right:-14px;top:50%;width:13px;border-top:2px solid var(--line)}
+.bcol:not(:first-child) .btie::before,.bfinal::before{content:"";position:absolute;left:-14px;top:50%;width:13px;border-top:2px solid var(--line)}
+.bfinal{position:relative;border:2px solid var(--gold);border-radius:10px;background:var(--gold-soft);padding:6px 0;cursor:pointer}
+.bfinal .bl{display:flex;gap:6px;padding:4px 10px;font-size:13px}
+.bfinal .champ-line{font-size:12px;font-weight:800;color:var(--gold);padding:4px 10px 0;border-top:1px solid var(--line);margin-top:4px}
+
+.round{display:flex;flex-direction:column;gap:12px}
+.round h3{margin:6px 0 0;font-size:17px}
+.ties{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+@media (max-width:360px){.ties{grid-template-columns:1fr}}
+.tie{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:box-shadow .3s}
+.tie.flash{box-shadow:0 0 0 3px var(--gold)}
+.tie .ghead{padding:7px 12px}
+.agg{padding:8px 12px 10px;border-top:1px dashed var(--line);font-size:13px;display:flex;flex-direction:column;gap:6px}
+.agg .res{font-weight:700}
+.agg .res.win{color:var(--pitch)}
+.agg .res.tied{color:var(--gold)}
+.ph-note{padding:14px;color:var(--muted);font-size:13px;text-align:center}
+
+.champ{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#FFE29A,#E3A82B);color:#2a1b00;border-radius:12px;padding:14px 18px}
+.champ img{width:48px;height:48px;border-radius:50%}
+.champ .k{font-size:12px;font-weight:700;letter-spacing:.12em}
+.champ .v{font-size:24px;font-weight:900;line-height:1.2}
+
+.promo{border-color:var(--pitch)}
+.promo h3{margin:0 0 4px;font-size:17px}
+.promo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:12px 0}
+.promo-grid label{font-size:12px;color:var(--muted);font-weight:700}
+.promo-grid select{padding:6px 8px;margin-top:2px}
+
 .abar{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:var(--bg);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;z-index:10}
 .abar .st{font-size:14px}
 .abar .st b{color:var(--gold)}
@@ -125,24 +178,6 @@ tr.adv td.pos::before,.prow.adv .pos::before{content:"";display:inline-block;wid
 .toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
 textarea.out{min-height:120px}
-.notice{background:var(--warn-bg);border:1px solid var(--gold);border-radius:10px;padding:10px 14px;font-size:13.5px}
-/* stages */
-.stages{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
-.stages button{flex:none;border-radius:999px;padding:6px 14px;display:inline-flex;align-items:center;gap:6px}
-.stages button[aria-pressed="true"]{background:var(--pitch);border-color:var(--pitch);color:var(--pitch-ink);font-weight:700}
-.stages .live{font-size:11px;font-weight:700;background:var(--gold);color:#1a1a1a;border-radius:999px;padding:0 7px;line-height:18px}
-.stagehead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.stagehead h2{margin:0;font-size:22px;font-weight:900}
-.stagehead .sub{font-size:13px;color:var(--muted)}
-.oldnote{font-size:13px;color:var(--muted);background:var(--chip);border-radius:8px;padding:6px 12px}
-.champ{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#FFE29A,#E3A82B);color:#2a1b00;border-radius:12px;padding:14px 18px}
-.champ img{width:48px;height:48px;border-radius:50%}
-.champ .k{font-size:12px;font-weight:700;letter-spacing:.12em}
-.champ .v{font-size:24px;font-weight:900;line-height:1.2}
-.advbox{border-color:var(--pitch)}
-.advbox h3{margin:0 0 4px;font-size:17px}
-.advgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px}
-@media (max-width:720px){.advgrid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -159,7 +194,6 @@ textarea.out{min-height:120px}
     </div>
   </header>
 
-  <!-- 管理员登录 -->
   <section class="card login" id="loginBox" hidden>
     <h2>管理员登录</h2>
     <p class="hint" style="margin:0 0 10px">输入管理密钥（GitHub 访问令牌）。密钥由 GitHub 核对，不会发给其他任何地方。</p>
@@ -172,100 +206,118 @@ textarea.out{min-height:120px}
     <div class="err" id="loginErr"></div>
   </section>
 
-  <!-- 轮次页签：最新在最前 -->
-  <nav class="stages" id="stageTabs" aria-label="轮次" hidden></nav>
+  <nav class="pages" id="pages" aria-label="页面">
+    <button type="button" data-p="group"><b id="pgGroupName">小组赛</b><small id="pgGroupSub">小组赛</small></button>
+    <button type="button" data-p="ko"><b>淘汰赛</b><small id="pgKoSub">对阵图</small></button>
+    <button type="button" data-p="final"><b>冠军赛</b><small id="pgFinalSub">4强循环赛</small></button>
+  </nav>
 
-  <div class="stagehead" id="stageHead" hidden><h2 id="stageName"></h2><span class="sub" id="stageSub"></span></div>
-  <div class="oldnote" id="oldNote" hidden>这是往期结果。最新一轮在最前面的页签。</div>
-  <div class="champ" id="champ" hidden><img src="logo.png" alt="" onerror="this.remove()"><div><div class="k">CHAMPION · 冠军</div><div class="v" id="champName"></div></div></div>
+  <!-- ========== 第 1 页：小组赛 ========== -->
+  <section id="pageGroup" style="display:flex;flex-direction:column;gap:14px">
+    <div class="pagehead"><h2 id="groupTitle">小组赛</h2><span class="sub" id="groupSub"></span></div>
 
-  <!-- 本轮设置与抽签（仅管理员） -->
-  <details class="card" id="setupBox" hidden>
-    <summary id="setupSummary">本轮设置与抽签</summary>
-    <div class="setup">
-      <div>
-        <label class="lbl" for="titleIn">赛事名称（所有轮次共用）</label>
-        <input type="text" id="titleIn" maxlength="40" style="margin-bottom:12px">
-        <label class="lbl" for="namesIn">本轮名单（每行一个，也可用逗号、顿号分隔）</label>
-        <textarea id="namesIn" spellcheck="false"></textarea>
-        <div class="hint">共 <b id="nCount">0</b> 人 · <button type="button" class="link" id="sampleBtn">填入32人示例</button> <button type="button" class="link" id="clearBtn">清空</button></div>
+    <details class="card" id="setupBox" hidden>
+      <summary>小组赛设置与抽签</summary>
+      <div class="setup">
+        <div>
+          <label class="lbl" for="titleIn">赛事名称</label>
+          <input type="text" id="titleIn" maxlength="40" style="margin-bottom:12px">
+          <label class="lbl" for="namesIn">参赛名单（每行一个，也可用逗号、顿号分隔）</label>
+          <textarea id="namesIn" spellcheck="false"></textarea>
+          <div class="hint">共 <b id="nCount">0</b> 人 · <button type="button" class="link" id="sampleBtn">填入32人示例</button> <button type="button" class="link" id="clearBtn">清空</button></div>
+        </div>
+        <div class="opts">
+          <div>
+            <span class="lbl">分几组</span>
+            <div class="seg" id="groupSeg"></div>
+            <p class="hint" id="perGroup"></p>
+            <p class="hint">完全随机分组。每组前 2 名晋级淘汰赛，对阵按 2022 世界杯规则（A1 对 B2、B1 对 A2…）。</p>
+          </div>
+          <div class="row">
+            <button class="primary" type="button" id="drawBtn">一键抽签分组</button>
+          </div>
+          <p class="hint" id="drawWarn" hidden>已经抽过签了。重新抽签会清空小组赛比分，也会清空淘汰赛和冠军赛。</p>
+        </div>
       </div>
-      <div class="opts">
-        <p class="notice" id="formatNote" hidden style="margin:0"></p>
-        <div id="groupBlock">
-          <span class="lbl">分几组</span>
-          <div class="seg" id="groupSeg"></div>
-          <div class="row" style="margin-top:8px"><span class="hint" style="margin:0">自定义</span><input id="groupCustom" class="sm num" type="number" min="1" max="64" aria-label="自定义组数"></div>
-          <p class="hint" id="perGroup"></p>
-        </div>
-        <div class="row" id="advInRow">
-          <label class="lbl" for="advIn" style="margin:0">每组晋级名额</label>
-          <input id="advIn" class="sm num" type="number" min="0" max="10">
-        </div>
-        <div class="row">
-          <button class="primary" type="button" id="drawBtn">一键抽签分组</button>
-        </div>
-        <p class="hint" id="drawWarn" hidden>本轮已经抽过签了，重新抽签会清空本轮所有比分。</p>
-      </div>
-    </div>
-  </details>
+    </details>
 
-  <!-- 晋级下一轮（仅管理员、仅最新一轮） -->
-  <section class="card advbox" id="advBox" hidden>
-    <h3>晋级下一轮</h3>
-    <p class="hint" style="margin:0" id="advIntro"></p>
-    <p class="notice" id="advWarn" hidden style="margin:10px 0 0"></p>
-    <div class="advgrid">
-      <div>
-        <label class="lbl" for="advNames">晋级名单（可以手动增删调整）</label>
-        <textarea id="advNames" spellcheck="false"></textarea>
-        <div class="hint">共 <b id="advCount">0</b> 人 · 下一轮叫「<b id="advStageName"></b>」</div>
-      </div>
+    <details class="card" id="ioBox" hidden>
+      <summary>导出 / 导入</summary>
       <div class="opts">
         <div>
-          <span class="lbl">下一轮赛制</span>
-          <div class="seg" id="advFmtSeg"></div>
-          <p class="hint" id="advFmtHint"></p>
+          <span class="lbl">导出</span>
+          <div class="row">
+            <button type="button" id="exportGroups">导出分组文字</button>
+            <button type="button" id="exportBackup">导出完整备份</button>
+          </div>
+          <p class="hint">分组文字是「A组：张三、李四…」这种格式，方便发到群里或存起来。完整备份包含三个页面的全部分组和比分。</p>
         </div>
-        <div id="advGroupBlock">
-          <span class="lbl">分几组</span>
-          <div class="seg" id="advGroupSeg"></div>
-          <div class="row" style="margin-top:8px"><span class="hint" style="margin:0">自定义</span><input id="advGroupCustom" class="sm num" type="number" min="1" max="64" aria-label="下一轮自定义组数"></div>
-          <p class="hint" id="advPerGroup"></p>
-        </div>
-        <div class="row" id="advNextAdvRow">
-          <label class="lbl" for="advNextAdv" style="margin:0">下一轮每组晋级名额</label>
-          <input id="advNextAdv" class="sm num" type="number" min="0" max="10">
-        </div>
-        <div class="row">
-          <button class="primary" type="button" id="advGo">确认，抽签生成下一轮</button>
-          <button type="button" id="advCancel">取消</button>
+        <div>
+          <label class="lbl" for="importIn">导入（把内容粘贴到下面）</label>
+          <textarea id="importIn" spellcheck="false" placeholder="A组：张三、李四、王五、赵六&#10;B组：…&#10;&#10;也可以粘贴「复制结果文字」复制出来的内容，或者完整备份"></textarea>
+          <div class="row" style="margin-top:8px">
+            <button type="button" class="primary" id="importCheck">识别</button>
+            <button type="button" id="importClear">清空</button>
+          </div>
+          <p class="notice" id="importPreview" hidden style="margin-top:10px"></p>
+          <div class="row" id="importActions" hidden style="margin-top:8px">
+            <button type="button" class="primary" id="importGo">确认导入</button>
+            <span class="hint" style="margin:0">导入后记得点底部「发布」</span>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </details>
 
-  <section style="display:flex;flex-direction:column;gap:12px">
     <div class="toolbar">
       <div class="tabs" id="scoreTabs" role="group" aria-label="计分方式">
         <button type="button" data-v="match">比赛计分</button>
         <button type="button" data-v="points">直接加分</button>
       </div>
       <div class="row">
-        <span class="legend"><i></i>每组前 <b id="advN">2</b> 名晋级</span>
-        <button type="button" id="copyBtn">复制结果文字</button>
+        <span class="legend"><i></i>每组前 2 名晋级</span>
+        <button type="button" data-copy="group">复制结果文字</button>
       </div>
     </div>
-    <div class="row" id="adminTools" hidden>
-      <button type="button" class="primary" id="advOpen">晋级下一轮 →</button>
-      <button type="button" class="danger" id="resetBtn">清零本轮比分</button>
-      <button type="button" class="danger" id="delStageBtn">删除这一轮</button>
+    <div class="row" id="groupTools" hidden>
+      <button type="button" class="primary" id="promoOpen">确认晋级 → 填入淘汰赛</button>
+      <button type="button" class="danger" id="groupReset">清零小组赛比分</button>
       <button type="button" class="danger" id="restartBtn">全部重新开始</button>
     </div>
+
+    <section class="card promo" id="promoBox" hidden>
+      <h3>确认小组出线</h3>
+      <p class="hint" style="margin:0" id="promoIntro"></p>
+      <p class="notice" id="promoWarn" hidden style="margin-top:10px"></p>
+      <div class="promo-grid" id="promoGrid"></div>
+      <div class="row">
+        <button class="primary" type="button" id="promoGo">确认，填入淘汰赛对阵</button>
+        <button type="button" id="promoCancel">取消</button>
+      </div>
+    </section>
+
     <p class="hint" id="modeHint" style="margin:0"></p>
     <div class="groups" id="groups"></div>
-    <textarea class="out" id="outText" hidden readonly aria-label="结果文字"></textarea>
   </section>
+
+  <!-- ========== 第 2 页：淘汰赛 ========== -->
+  <section id="pageKo" style="display:flex;flex-direction:column;gap:14px" hidden>
+    <div class="pagehead"><h2>淘汰赛对阵图</h2><span class="sub">每组两回合，比积分，同分看净胜球；再相同加赛一场，加赛平了踢点球</span></div>
+    <p class="notice" id="koUnsupported" hidden></p>
+    <div class="bracket-wrap" id="bracketWrap"><div class="bracket" id="bracket"></div></div>
+    <p class="hint" style="margin:-6px 0 0">点对阵图里的任意一组，可以跳到下面看两回合比分。手机上可以左右滑动对阵图。</p>
+    <div class="row"><button type="button" data-copy="ko">复制结果文字</button></div>
+    <div id="rounds" style="display:flex;flex-direction:column;gap:18px"></div>
+  </section>
+
+  <!-- ========== 第 3 页：冠军赛 ========== -->
+  <section id="pageFinal" style="display:flex;flex-direction:column;gap:14px" hidden>
+    <div class="pagehead"><h2>4强 · 冠军赛</h2><span class="sub">单循环积分赛，每人赛 3 场，积分第一名夺冠；积分和净胜球相同就加赛，再平踢点球</span></div>
+    <div class="champ" id="champ" hidden><img src="logo.png" alt="" onerror="this.remove()"><div><div class="k">CHAMPION · 冠军</div><div class="v" id="champName"></div></div></div>
+    <div class="row"><button type="button" data-copy="final">复制结果文字</button><button type="button" class="danger" id="finalReset" hidden>清零冠军赛比分</button></div>
+    <div id="finalBody"></div>
+  </section>
+
+  <textarea class="out" id="outText" hidden readonly aria-label="结果文字"></textarea>
 </div>
 
 <div class="abar" id="abar" hidden>
@@ -294,40 +346,63 @@ const CONFIG = { owner: "", repo: "", branch: "main", dataPath: "data.json", aut
 const $ = s => document.querySelector(s);
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const SAMPLE = ["西班牙","阿根廷","法国","英格兰","巴西","葡萄牙","荷兰","比利时","德国","克罗地亚","摩洛哥","哥伦比亚","乌拉圭","瑞士","日本","墨西哥","美国","挪威","塞内加尔","韩国","澳大利亚","厄瓜多尔","奥地利","伊朗","加拿大","埃及","苏格兰","巴拉圭","科特迪瓦","加纳","沙特","南非"];
+const ADV = 2; // 每组前 2 名晋级
 
-/* 数据结构：{ title, updatedAt, stages: [第1轮, 第2轮, …] }，最后一轮是正在进行的 */
-function newStage(opts){
-  return Object.assign({ name: "", format: "groups", names: [], groupCount: 4, drawMode: "random", adv: 2, scoreMode: "match", groups: null, matches: null, pts: null, createdAt: null }, opts || {});
+/* ============ 数据结构 ============
+ * { title, updatedAt,
+ *   group: { names, groupCount, scoreMode, groups, matches, pts },
+ *   ko:    [ 每一轮 { ties: [ { a, b, legs:[{sa,sb},{sa,sb}], pick } ] } ]   第 1 回合 a 主场，第 2 回合 b 主场
+ *   final: { names:[4 人], matches, pick } } */
+const newExtra = () => ({ sa: "", sb: "", pa: "", pb: "" }); // 加赛比分 + 点球
+const newTie = () => ({ a: null, b: null, legs: [{ sa: "", sb: "" }, { sa: "", sb: "" }], extra: newExtra(), pick: null });
+const newFinal = () => ({ names: [null, null, null, null], matches: null, extra: newExtra(), pick: null });
+// 加赛结果：先看加赛比分，打平再看点球；返回 {side:"a"|"b"|null, pens:true/false, needPens}
+function extraResult(x){
+  x = x || {};
+  if (!done(x)) return { side: null, pens: false, needPens: false };
+  if (+x.sa !== +x.sb) return { side: +x.sa > +x.sb ? "a" : "b", pens: false, needPens: false };
+  const pOk = x.pa !== "" && x.pb !== "" && x.pa != null && x.pb != null && +x.pa !== +x.pb;
+  return { side: pOk ? (+x.pa > +x.pb ? "a" : "b") : null, pens: pOk, needPens: true };
 }
-// 兼容旧版（没有 stages 的单轮数据）
-function normalize(raw){
-  const d = { title: (raw && raw.title) || "CENTRAL LEAGUE", updatedAt: (raw && raw.updatedAt) || null, stages: [] };
-  if (raw && Array.isArray(raw.stages)) d.stages = raw.stages.map(s => newStage(s));
-  else if (raw && (raw.groups || (raw.names && raw.names.length))) {
-    d.stages = [newStage({ name: raw.groups ? stageName(countOf(raw.groups)) : "", names: raw.names || [], groupCount: raw.groupCount || 4, drawMode: raw.drawMode || "random", adv: raw.adv == null ? 2 : raw.adv, scoreMode: raw.scoreMode || "match", groups: raw.groups || null, matches: raw.matches || null, pts: raw.pts || null })];
-  }
-  if (!d.stages.length) d.stages.push(newStage());
+function isPow2(n){ return n >= 2 && (n & (n - 1)) === 0; }
+function koRoundCount(G){ return isPow2(G) ? Math.log2(G / 2) : -1; } // 8 组 → 2 轮（16强、8强）
+function G_of(d){ return d.group.groups ? d.group.groups.length : d.group.groupCount; }
+function ensureStructure(d){
+  const G = G_of(d), R = koRoundCount(G);
+  if (!d.final || !Array.isArray(d.final.names)) d.final = newFinal();
+  if (R < 0) { d.ko = []; return d; }
+  const want = [...Array(R).keys()].map(r => G / Math.pow(2, r));
+  const ok = Array.isArray(d.ko) && d.ko.length === R && d.ko.every((rd, r) => rd && rd.ties && rd.ties.length === want[r]);
+  if (!ok) d.ko = want.map(t => ({ ties: [...Array(t)].map(newTie) }));
   return d;
 }
-const countOf = groups => groups.reduce((n, g) => n + g.length, 0);
-const stageName = n => n === 2 ? "决赛" : n + "强";
+function normalize(raw){
+  raw = raw || {};
+  const d = { title: raw.title || "CENTRAL LEAGUE", updatedAt: raw.updatedAt || null, group: null, ko: [], final: newFinal() };
+  if (raw.group) {
+    d.group = raw.group; d.ko = raw.ko || []; d.final = raw.final || newFinal();
+  } else {
+    // 兼容旧版：多轮 stages 或单轮数据，取第一轮作为小组赛
+    const s = Array.isArray(raw.stages) && raw.stages[0] ? raw.stages[0] : raw;
+    d.group = { names: s.names || [], groupCount: s.groupCount || 8, scoreMode: s.scoreMode || "match", groups: s.groups || null, matches: s.matches || null, pts: s.pts || null };
+  }
+  d.group = Object.assign({ names: [], groupCount: 8, scoreMode: "match", groups: null, matches: null, pts: null, extra: [] }, d.group);
+  return ensureStructure(d);
+}
 
-let data = null;      // 已发布的数据
-let draft = null;     // 管理员编辑中的副本
+let data = null, draft = null;
 let admin = false, token = null, sha = null, changes = 0, busy = false;
-let sel = -1;         // 正在看第几轮（-1 = 最新）
+let page = null;          // 当前页面：group | ko | final（null = 自动显示进行中的那一页）
+let lastAuto = null;
 
 const clone = o => JSON.parse(JSON.stringify(o));
 const view = () => (admin ? draft : data) || normalize(null);
-const selIndex = () => { const n = view().stages.length; return sel < 0 || sel >= n ? n - 1 : sel; };
-const stage = () => view().stages[selIndex()];
-const isLatest = () => selIndex() === view().stages.length - 1;
-function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function store(k, v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch(e){} }
 function load(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
-let tt; function toast(m, ms){ const el=$("#toast"); el.textContent=m; el.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove("show"), ms||2200); }
+let tt; function toast(m, ms){ const el=$("#toast"); el.textContent=m; el.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove("show"), ms||2400); }
 
-/* ============ 抽签与积分逻辑 ============ */
+/* ============ 基础逻辑 ============ */
 function parseNames(t){
   let parts = String(t||"").split(/[\n\r,，、;；\t]+/).map(s=>s.trim()).filter(Boolean);
   if (parts.length === 1 && /\s/.test(parts[0])) parts = parts[0].split(/\s+/);
@@ -336,44 +411,8 @@ function parseNames(t){
   return out;
 }
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-function drawGroups(names, g){
-  const groups = Array.from({length:g}, () => []);
-  shuffle(names).forEach((n,i) => groups[i%g].push(n)); // 每次完全随机
-  return groups;
-}
-function twoLegs(g){ return [{a:g[0],b:g[1],sa:"",sb:""},{a:g[1],b:g[0],sa:"",sb:""}]; }
 function makeMatches(m){ const r=[]; for(let i=0;i<m.length;i++) for(let j=i+1;j<m.length;j++) r.push({a:m[i],b:m[j],sa:"",sb:""}); return r; }
-/* 赛制：groups 小组赛 | cross 小组第一对第二（同组不相遇）| pairs 随机两两对决 | rr 单组循环赛 */
-const FORMATS = {
-  groups: "小组赛",
-  cross: "第一对第二",
-  pairs: "随机两两对决",
-  rr: "循环赛"
-};
-// 名单前一半是各组第 1，后一半是对应顺序的各组第 2；随机配对且不和同组的人碰面
-function crossPairs(names){
-  const G = names.length / 2, W = names.slice(0, G), R = names.slice(G), idx = [...Array(G).keys()];
-  for (let t = 0; t < 1000; t++) {
-    const p = shuffle(idx);
-    if (G < 2 || p.every((r, i) => r !== i)) return shuffle(W.map((w, i) => [w, R[p[i]]]));
-  }
-  return W.map((w, i) => [w, R[(i + 1) % G]]);
-}
-function randomPairs(names){ const a = shuffle(names), out = []; for (let i = 0; i < a.length; i += 2) out.push(a.slice(i, i + 2)); return out; }
-function fillDraw(s, names){
-  s.names = names;
-  if (s.format === "cross") s.groups = crossPairs(names);
-  else if (s.format === "pairs") s.groups = randomPairs(names);
-  else if (s.format === "rr") s.groups = [shuffle(names)];
-  else s.groups = drawGroups(names, s.groupCount);
-  s.groupCount = s.groups.length;
-  // 淘汰赛每组两回合（主客各一场），其他赛制组内单循环
-  s.matches = s.groups.map(g => (s.format === "cross" || s.format === "pairs") && g.length === 2 ? twoLegs(g) : makeMatches(g));
-  s.pts = s.groups.map(g => g.map(() => 0));
-  s.name = stageName(names.length);
-  s.createdAt = new Date().toISOString();
-}
-const done = m => m.sa !== "" && m.sb !== "" && m.sa != null && m.sb != null;
+const done = m => !!m && m.sa !== "" && m.sb !== "" && m.sa != null && m.sb != null;
 function standings(members, matches){
   const t = {}; members.forEach(n => t[n] = {n,p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0});
   (matches||[]).forEach(m => {
@@ -384,37 +423,123 @@ function standings(members, matches){
   });
   return members.map(n=>t[n]).sort((x,y)=> y.pts-x.pts || (y.gf-y.ga)-(x.gf-x.ga) || y.gf-x.gf || members.indexOf(x.n)-members.indexOf(y.n));
 }
-function pointsRows(s, gi){
-  const pts = (s.pts && s.pts[gi]) || [];
-  return s.groups[gi].map((n,i)=>({n,i,v:pts[i]||0})).sort((x,y)=> y.v-x.v || x.i-y.i);
+const L = i => LETTERS[i] || String(i + 1);
+const koName = (d, r) => (G_of(d) * 2 / Math.pow(2, r)) + "强";
+
+/* 小组排名：积分 → 净胜球 → 加赛（再平看点球）。
+ * 只有影响结果的并列才加赛：第 1、2 名并列（争小组第一）或第 2、3 名并列（争出线）。 */
+function groupInfo(g, gi){
+  const members = g.groups[gi];
+  let rows, key, complete;
+  if (g.scoreMode === "points") {
+    const pts = (g.pts && g.pts[gi]) || [];
+    rows = members.map((n, i) => ({ n, i, v: pts[i] || 0 })).sort((x, y) => y.v - x.v || x.i - y.i);
+    key = r => String(r.v); complete = false; // 直接加分模式不自动加赛，晋级时手动选
+  } else {
+    rows = standings(members, g.matches[gi]).map(r => Object.assign(r, { i: members.indexOf(r.n) }));
+    rows.sort((x, y) => y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga) || x.i - y.i);
+    key = r => r.pts + "|" + (r.gf - r.ga);
+    complete = g.matches[gi].every(done);
+  }
+  let playoff = null, manual = null;
+  if (complete) {
+    for (const bnd of [1, 2]) {
+      if (bnd >= rows.length || key(rows[bnd - 1]) !== key(rows[bnd])) continue;
+      const k = key(rows[bnd]); let st = bnd - 1, en = bnd;
+      while (st > 0 && key(rows[st - 1]) === k) st--;
+      while (en < rows.length - 1 && key(rows[en + 1]) === k) en++;
+      const names = rows.slice(st, en + 1).map(r => r.n);
+      if (names.length === 2) playoff = { a: names[0], b: names[1], start: st, what: st === 0 ? "争小组第一" : "争小组出线" };
+      else manual = { names, what: st === 0 ? "争小组第一和出线" : "争小组出线" };
+      break;
+    }
+  }
+  let x = null, res = extraResult(null);
+  if (playoff) {
+    const e = g.extra && g.extra[gi];
+    x = e && e.a === playoff.a && e.b === playoff.b ? e : null;
+    res = extraResult(x);
+    if (res.side === "b") { const i = playoff.start; [rows[i], rows[i + 1]] = [rows[i + 1], rows[i]]; }
+  }
+  return { rows, playoff, x, res, manual };
 }
-function ranked(s, gi){ return s.scoreMode === "points" ? pointsRows(s, gi).map(r => r.n) : standings(s.groups[gi], s.matches[gi]).map(r => r.n); }
-// 晋级名单：先列各组第 1 名，再列各组第 2 名……（只是列出顺序，下一轮抽签完全随机）
-function qualifiers(s){
-  const lists = s.groups.map((_, gi) => ranked(s, gi).slice(0, s.adv)), out = [];
-  for (let k = 0; k < s.adv; k++) lists.forEach(l => { if (l[k] != null) out.push(l[k]); });
+function groupRank(g, gi){ return groupInfo(g, gi).rows.map(r => r.n); }
+function groupExtraHTML(g, gi, info){
+  if (info.playoff) {
+    const P = info.playoff;
+    let h = `<span class="res tied">${esc(P.a)} 和 ${esc(P.b)} 积分、净胜球都相同（${P.what}），加赛一场，再平踢点球</span>`;
+    h += `<div class="matches" style="border-top:0;padding:4px 0 0">${extraRows(P.a, P.b, info.x, `gx-${gi}`, `data-k="gx" data-g="${gi}"`)}</div>`;
+    h += info.res.side ? `<span class="res win">${esc(info.res.side === "a" ? P.a : P.b)} 胜出（${esc(extraText(info.x))}）</span>` : `<span class="hint" style="margin:0">${info.res.needPens ? "加赛打平，请填写点球比分" : "请填写加赛比分"}</span>`;
+    return `<div class="agg">${h}</div>`;
+  }
+  if (info.manual) return `<div class="agg"><span class="res tied">${info.manual.names.map(esc).join("、")} 积分、净胜球都相同（${info.manual.what}）。${info.manual.names.length} 人并列没法一场加赛决出，请自行加赛，然后在「确认晋级」时手动选名次。</span></div>`;
+  return "";
+}
+function groupPending(g){ // 还需要加赛或手动排名的组
+  if (!g.groups) return [];
+  return g.groups.map((_, gi) => { const f = groupInfo(g, gi); return (f.playoff && !f.res.side) || f.manual ? L(gi) + "组" : null; }).filter(Boolean);
+}
+function groupUnfinished(g){ return g.scoreMode === "match" && g.matches ? g.matches.reduce((n, x) => n + x.filter(m => !done(m)).length, 0) : 0; }
+
+/* 淘汰赛占位（2022 世界杯对阵）：第一轮 A1-B2、C1-D2…、B1-A2、D1-C2…；之后相邻两组的胜者相遇 */
+function firstRoundSlots(G){
+  const out = [];
+  for (let k = 0; k + 1 < G; k += 2) out.push([L(k) + "1", L(k+1) + "2"]);
+  for (let k = 0; k + 1 < G; k += 2) out.push([L(k+1) + "1", L(k) + "2"]);
   return out;
 }
-function unfinished(s){
-  if (s.scoreMode !== "match") return 0;
-  return s.matches.reduce((n, g) => n + g.filter(m => !done(m)).length, 0);
+function tieCode(d, r, t){ return r === 0 ? firstRoundSlots(G_of(d))[t].join("/") : koName(d, r) + "第" + (t + 1) + "组"; }
+function slotLabel(d, r, t, side){ return r === 0 ? firstRoundSlots(G_of(d))[t][side] : tieCode(d, r - 1, 2 * t + side) + " 胜者"; }
+function finalSlotLabel(d, i){ return d.ko.length ? tieCode(d, d.ko.length - 1, i) + " 胜者" : ["A1", "B2", "B1", "A2"][i]; }
+
+/* 两回合合计：比积分，同分看净胜球；再相同需要管理员判定 */
+function tieResult(tie){
+  const r = { pa: 0, pb: 0, ga: 0, gb: 0, played: 0, winner: null, tied: false };
+  if (!tie.a || !tie.b) return r;
+  tie.legs.forEach((lg, i) => {
+    if (!done(lg)) return;
+    r.played++;
+    const home = +lg.sa, away = +lg.sb;
+    const ag = i === 0 ? home : away, bg = i === 0 ? away : home;
+    r.ga += ag; r.gb += bg;
+    if (ag > bg) r.pa += 3; else if (ag < bg) r.pb += 3; else { r.pa++; r.pb++; }
+  });
+  if (r.played === 2) {
+    if (r.pa !== r.pb) r.winner = r.pa > r.pb ? tie.a : tie.b;
+    else if (r.ga !== r.gb) r.winner = r.ga > r.gb ? tie.a : tie.b;
+    else {
+      r.tied = true;                      // 积分、净胜球都相同 → 加赛一场，再平看点球
+      const x = extraResult(tie.extra);
+      r.extra = x;
+      if (x.side) r.winner = x.side === "a" ? tie.a : tie.b;
+      else if (tie.pick === "a") r.winner = tie.a; else if (tie.pick === "b") r.winner = tie.b; // 兼容旧数据
+    }
+  }
+  return r;
 }
-function ties(s){ // 两人对决打完后积分、净胜球都相同，需要手动决定晋级者的组数
-  if (s.scoreMode !== "match") return 0;
-  return s.groups.reduce((n, g, gi) => {
-    const ms = s.matches[gi] || [];
-    if (g.length !== 2 || !ms.length || !ms.every(done)) return n;
-    const [x, y] = standings(g, ms);
-    return n + (x.pts === y.pts && (x.gf - x.ga) === (y.gf - y.ga) ? 1 : 0);
-  }, 0);
+/* 冠军赛 */
+function finalReady(f){ return f.names.every(Boolean) && !!f.matches; }
+function finalStandings(f){ return standings(f.names, f.matches); }
+function finalTiedTop(f){
+  if (!finalReady(f) || !f.matches.every(done)) return [];
+  const st = finalStandings(f), top = st[0];
+  const same = st.filter(r => r.pts === top.pts && (r.gf-r.ga) === (top.gf-top.ga));
+  return same.length > 1 ? same.map(r => r.n).sort((x, y) => f.names.indexOf(x) - f.names.indexOf(y)) : [];
 }
-function champion(s){
-  if (!s || !s.groups || s.groups.length !== 1 || s.adv !== 1 || s.scoreMode !== "match") return null;
-  if (unfinished(s)) return null;
-  const st = standings(s.groups[0], s.matches[0]);
-  if (st.length > 1 && st[0].pts === st[1].pts && (st[0].gf - st[0].ga) === (st[1].gf - st[1].ga) && st[0].gf === st[1].gf) return null; // 打平未分胜负
-  return st[0] ? st[0].n : null;
+function champion(f){
+  if (!finalReady(f) || !f.matches.every(done)) return null;
+  const tied = finalTiedTop(f);
+  if (!tied.length) return finalStandings(f)[0].n;
+  if (tied.length === 2) { const x = extraResult(f.extra); if (x.side) return x.side === "a" ? tied[0] : tied[1]; }
+  return f.pick && tied.includes(f.pick) ? f.pick : null;
 }
+
+function autoPage(d){
+  if (d.final.names.some(Boolean)) return "final";
+  if (d.ko.length && d.ko[0].ties.some(t => t.a)) return "ko";
+  return "group";
+}
+const curPage = () => page || autoPage(view());
 
 /* ============ GitHub 读写 ============ */
 const api = p => `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}${p}`;
@@ -445,7 +570,7 @@ async function saveLatest(obj){
   sha = (await r.json()).content.sha;
 }
 
-/* ============ 页面 ============ */
+/* ============ 通用渲染 ============ */
 function fmtTime(iso){
   if (!iso) return "";
   const d = new Date(iso), p = n => (n<10?"0":"")+n;
@@ -459,25 +584,20 @@ function renderHeader(){
   $("#autoTip").textContent = admin ? "" : "每 " + CONFIG.autoRefreshSec + " 秒自动刷新";
   $("#adminBtn").hidden = admin;
 }
-function renderStages(){
-  const d = view(), n = d.stages.length, cur = selIndex(), s = stage();
-  const nav = $("#stageTabs");
-  nav.hidden = n < 2;
-  const order = [...Array(n).keys()].reverse(); // 最新在最前
-  nav.innerHTML = order.map(i => {
-    const st = d.stages[i];
-    const label = esc(st.name || ("第 " + (i+1) + " 轮"));
-    return `<button type="button" data-i="${i}" aria-pressed="${i===cur}">${label}${i===n-1 ? '<span class="live">进行中</span>' : ''}</button>`;
-  }).join("");
-  $("#stageHead").hidden = !s.groups;
-  $("#stageName").textContent = s.name || "";
-  $("#stageSub").textContent = !s.groups ? "" : isKO(s) ? `${countOf(s.groups)} 人 · ${FORMATS[s.format]} · ${s.groups.length} 组对决，每组两回合，积分高者晋级（同分看净胜球）` : s.format === "rr" ? `${countOf(s.groups)} 人循环赛 · 积分第一名夺冠` : `${countOf(s.groups)} 人 · ${s.groups.length} 组 · 每组前 ${s.adv} 名晋级`;
-  $("#oldNote").hidden = isLatest();
-  const c = isLatest() ? champion(s) : null;
-  $("#champ").hidden = !c;
-  if (c) $("#champName").textContent = c;
+function groupTotal(g){ return g.groups ? g.groups.reduce((a, x) => a + x.length, 0) : 0; }
+function renderPages(){
+  const d = view(), cur = curPage(), live = autoPage(d), n = groupTotal(d.group);
+  $("#pgGroupName").textContent = n ? n + "强" : "小组赛";
+  $("#pgGroupSub").innerHTML = live === "group" ? '<span class="live">进行中</span>' : "小组赛";
+  $("#pgKoSub").innerHTML = live === "ko" ? '<span class="live">进行中</span>' : (d.ko.length ? d.ko.map((_, r) => koName(d, r)).join(" · ") : "对阵图");
+  const ch = champion(d.final);
+  $("#pgFinalSub").innerHTML = ch ? "冠军：" + esc(ch) : live === "final" ? '<span class="live">进行中</span>' : "4强循环赛";
+  document.querySelectorAll("#pages button").forEach(b => b.setAttribute("aria-pressed", b.dataset.p === cur));
+  $("#pageGroup").hidden = cur !== "group";
+  $("#pageKo").hidden = cur !== "ko";
+  $("#pageFinal").hidden = cur !== "final";
 }
-$("#stageTabs").onclick = e => { const b = e.target.closest("button"); if (!b) return; const i = +b.dataset.i; sel = i === view().stages.length - 1 ? -1 : i; $("#advBox").hidden = true; renderAll(); };
+$("#pages").onclick = e => { const b = e.target.closest("button"); if (!b) return; page = b.dataset.p; renderAll(); };
 
 function renderAdminBar(){
   $("#abar").hidden = !admin;
@@ -487,266 +607,505 @@ function renderAdminBar(){
   $("#discardBtn").disabled = !changes || busy;
 }
 function markChanged(){ changes++; renderAdminBar(); renderHeader(); }
-
-function tableHTML(s, gi){
-  const st = standings(s.groups[gi], s.matches[gi]);
+function scoreInputs(id, sa, sb, attrs, aName, bName, fa, fb){
+  return `<span class="sc"><input class="score-in num" inputmode="numeric" id="${id}-a" ${attrs} data-s="${fa || "sa"}" value="${esc(sa)}" aria-label="${esc(aName)} 得分"><span class="colon">:</span><input class="score-in num" inputmode="numeric" id="${id}-b" ${attrs} data-s="${fb || "sb"}" value="${esc(sb)}" aria-label="${esc(bName)} 得分"></span>`;
+}
+// 加赛 + 点球的输入行（淘汰赛和冠军赛共用）
+function extraRows(A, B, x, idp, attrs){
+  x = x || newExtra();
+  let h = matchRow({ a: A, b: B, sa: x.sa, sb: x.sb }, admin ? scoreInputs(idp + "-x", x.sa, x.sb, attrs, A, B) : "", "加赛一场（中立场）");
+  if (done(x) && +x.sa === +x.sb) h += matchRow({ a: A, b: B, sa: x.pa, sb: x.pb }, admin ? scoreInputs(idp + "-p", x.pa, x.pb, attrs, A, B, "pa", "pb") : "", "加赛打平 · 点球大战");
+  return h;
+}
+function extraText(x){ x = x || {}; if (!done(x)) return ""; return `加赛 ${x.sa}:${x.sb}` + (+x.sa === +x.sb && x.pa !== "" && x.pb !== "" ? `，点球 ${x.pa}:${x.pb}` : ""); }
+function scoreText(m){ const ok = done(m); return `<span class="sc"><span class="score-t num">${ok ? esc(m.sa) : "-"}</span><span class="colon">:</span><span class="score-t num">${ok ? esc(m.sb) : "-"}</span></span>`; }
+function matchRow(m, inputs, legLabel){
+  const ok = done(m);
+  return `<div class="match ${ok ? "done" : ""}">${legLabel ? `<span class="leg">${legLabel}</span>` : ""}<span class="a ${ok && +m.sa > +m.sb ? "w" : ""}">${esc(m.a)}</span>${inputs || scoreText(m)}<span class="b ${ok && +m.sb > +m.sa ? "w" : ""}">${esc(m.b)}</span></div>`;
+}
+function tableHTML(members, matches, advCount, rows){
+  const st = rows || standings(members, matches);
   return `<table><thead><tr><th>#</th><th>名称</th><th>赛</th><th>胜</th><th>平</th><th>负</th><th>净胜</th><th>积分</th></tr></thead><tbody>${
-    st.map((r,i)=>{ const gd=r.gf-r.ga; return `<tr class="${i<s.adv?"adv":""}"><td class="pos num">${i+1}</td><td class="nm" title="${esc(r.n)}">${esc(r.n)}</td><td class="num">${r.p}</td><td class="num">${r.w}</td><td class="num">${r.d}</td><td class="num">${r.l}</td><td class="num ${gd>0?"gd-pos":gd<0?"gd-neg":""}">${gd>0?"+":""}${gd}</td><td class="pts num">${r.pts}</td></tr>`; }).join("")
+    st.map((r,i)=>{ const gd=r.gf-r.ga; return `<tr class="${i<advCount?"adv":""}"><td class="pos num">${i+1}</td><td class="nm" title="${esc(r.n)}">${esc(r.n)}</td><td class="num">${r.p}</td><td class="num">${r.w}</td><td class="num">${r.d}</td><td class="num">${r.l}</td><td class="num ${gd>0?"gd-pos":gd<0?"gd-neg":""}">${gd>0?"+":""}${gd}</td><td class="pts num">${r.pts}</td></tr>`; }).join("")
   }</tbody></table>`;
 }
-const playedText = (s, gi) => (s.matches[gi].length === 2 && s.groups[gi].length === 2 ? "两回合" : "组内对阵") + ` · 已赛 ${s.matches[gi].filter(done).length}/${s.matches[gi].length}`;
-const isKO = s => s.format === "cross" || s.format === "pairs";
-const groupLabel = (s, gi) => s.groups.length === 1 ? (s.name || "决赛") + (s.format === "rr" ? " · 循环赛" : "") : isKO(s) ? "对决 " + (gi+1) : (LETTERS[gi] || gi+1) + " 组";
 
-function renderGroups(){
-  const s = stage();
-  document.querySelectorAll("#scoreTabs button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.v === s.scoreMode); b.disabled = !admin; });
-  $("#advN").textContent = s.adv;
-  $("#modeHint").textContent = s.scoreMode === "match"
-    ? (isKO(s) ? "每组两回合，每场胜 3 分、平 1 分、负 0 分，两场积分高者晋级；同分看净胜球。" : "胜 3 分、平 1 分、负 0 分；同分看净胜分，再看进球数。") + (admin ? "在对阵里填比分，填完点底部「发布」。" : "")
-    : "按总分排名。" + (admin ? "点按钮加减分，改完点底部「发布」。" : "");
-  $("#adminTools").hidden = !admin || !s.groups;
-  $("#advOpen").hidden = !isLatest() || !s.groups || (s.groups.length === 1 && s.adv <= 1); // 决赛/循环赛是最后一轮
-  $("#delStageBtn").hidden = !isLatest() || view().stages.length < 2;
-  const box = $("#groups");
-  if (!s.groups) {
-    box.innerHTML = `<div class="empty">${admin ? "在上方「本轮设置与抽签」里填好名单，点「一键抽签分组」。" : "还没有抽签分组，请等待组织者发布。"}</div>`;
-    return;
-  }
-  box.innerHTML = s.groups.map((members, gi) => {
-    const L = s.groups.length === 1 ? "★" : isKO(s) ? (gi+1) : (LETTERS[gi] || gi+1);
-    let body;
-    if (s.scoreMode === "match") {
-      body = `<div class="tbl-wrap" id="tbl-${gi}">${tableHTML(s, gi)}</div>
-      <div class="matches"><div class="mtitle" id="mt-${gi}">${playedText(s, gi)}</div>${
-        s.matches[gi].map((m, mi) => {
-          const ok = done(m), aw = ok && +m.sa > +m.sb, bw = ok && +m.sb > +m.sa;
-          const mid = admin
-            ? `<span class="sc"><input class="score-in num" inputmode="numeric" id="s-${gi}-${mi}-a" data-g="${gi}" data-m="${mi}" data-s="sa" value="${esc(m.sa)}" aria-label="${esc(m.a)} 得分"><span class="colon">:</span><input class="score-in num" inputmode="numeric" id="s-${gi}-${mi}-b" data-g="${gi}" data-m="${mi}" data-s="sb" value="${esc(m.sb)}" aria-label="${esc(m.b)} 得分"></span>`
-            : `<span class="sc"><span class="score-t num">${ok ? esc(m.sa) : "-"}</span><span class="colon">:</span><span class="score-t num">${ok ? esc(m.sb) : "-"}</span></span>`;
-          return `<div class="match ${ok?"done":""}"><span class="a ${aw?"w":""}" title="${esc(m.a)}">${esc(m.a)}</span>${mid}<span class="b ${bw?"w":""}" title="${esc(m.b)}">${esc(m.b)}</span></div>`;
-        }).join("")
-      }</div>`;
-    } else {
-      body = pointsRows(s, gi).map((r,k) => `<div class="prow ${k<s.adv?"adv":""}"><span class="pos num">${k+1}</span><span style="font-weight:500">${esc(r.n)}</span>${
-        admin ? `<span class="steps"><button type="button" class="minus" data-g="${gi}" data-i="${r.i}" data-d="-1" aria-label="${esc(r.n)} 减 1 分">−1</button><button type="button" data-g="${gi}" data-i="${r.i}" data-d="1" aria-label="${esc(r.n)} 加 1 分">+1</button><button type="button" data-g="${gi}" data-i="${r.i}" data-d="3" aria-label="${esc(r.n)} 加 3 分">+3</button></span>` : `<span></span>`
-      }<span class="ppts num">${r.v}</span></div>`).join("");
-    }
-    return `<article class="group"><div class="ghead"><span class="gletter">${L}</span><span class="gname">${esc(groupLabel(s, gi))}</span><span class="gsub">${members.length} 人</span></div>${body}</article>`;
-  }).join("");
-}
-
-/* ----- 本轮设置（管理员） ----- */
-const SEG = [1,2,4,8];
+/* ============ 第 1 页：小组赛 ============ */
+const SEG = [2, 4, 8, 16];
 function perGroupText(n, g){
   if (!n) return "";
   const lo = Math.floor(n/g), hi = Math.ceil(n/g);
   if (g > n) return "组数比人数还多，请减少组数";
-  if (lo === hi) return lo === 2 ? `两两对决，共 ${g} 场` : `每组 ${lo} 人，组内每人赛 ${lo-1} 场，共 ${g*lo*(lo-1)/2} 场`;
-  return `每组 ${lo}–${hi} 人（除不尽，有的组多一人）`;
-}
-function segOptions(n){ // 常用组数 + 两两对决
-  const opts = new Set(SEG); if (n >= 4 && n % 2 === 0) opts.add(n/2);
-  return [...opts].filter(v => !n || v <= n).sort((a,b)=>a-b);
+  if (lo === hi) return `每组 ${lo} 人，组内每人赛 ${lo-1} 场，共 ${g*lo*(lo-1)/2} 场；前 2 名共 ${g*2} 人晋级`;
+  return `每组 ${lo}–${hi} 人（除不尽，有的组多一人）；前 2 名共 ${g*2} 人晋级`;
 }
 function renderSetup(){
   $("#setupBox").hidden = !admin;
+  $("#ioBox").hidden = !admin;
   if (!admin) return;
-  const s = stage();
+  const g = view().group;
   if (document.activeElement !== $("#titleIn")) $("#titleIn").value = view().title || "";
-  if (document.activeElement !== $("#namesIn")) $("#namesIn").value = (s.names || []).join("\n");
-  const n = parseNames($("#namesIn").value).length;
-  $("#groupSeg").innerHTML = segOptions(n).map(v => `<button type="button" data-v="${v}" aria-pressed="${s.groupCount===v}">${n && n/v === 2 ? "两两对决" : v + " 组"}</button>`).join("");
-  $("#groupCustom").value = s.groupCount;
-  $("#advIn").value = s.adv;
-  const fmt = s.format || "groups";
-  $("#groupBlock").hidden = fmt !== "groups";
-  $("#advInRow").hidden = fmt !== "groups";
-  $("#formatNote").hidden = fmt === "groups";
-  $("#formatNote").textContent = fmt === "cross" ? "本轮赛制：第一对第二，每组两回合，比积分，同分看净胜球。名单前一半是各组第一（按组顺序），后一半是对应的各组第二。重新抽签会重新随机配对，同组的不会碰面。"
-    : fmt === "pairs" ? "本轮赛制：随机两两对决，每组两回合，比积分，同分看净胜球。重新抽签会重新随机配对。"
-    : fmt === "rr" ? "本轮赛制：所有人一组循环赛，积分第一名是冠军。" : "";
-  $("#drawWarn").hidden = !s.groups;
-  $("#drawBtn").textContent = s.groups ? "重新抽签" : "一键抽签分组";
-  $("#setupSummary").textContent = (s.name ? s.name + " · " : "") + "本轮设置与抽签";
-  $("#sampleBtn").hidden = view().stages.length > 1;
+  if (document.activeElement !== $("#namesIn")) $("#namesIn").value = (g.names || []).join("\n");
+  $("#groupSeg").innerHTML = SEG.map(v => `<button type="button" data-v="${v}" aria-pressed="${g.groupCount===v}">${v} 组</button>`).join("");
+  $("#drawWarn").hidden = !g.groups;
+  $("#drawBtn").textContent = g.groups ? "重新抽签" : "一键抽签分组";
   refreshCount();
 }
 function refreshCount(){
   const n = parseNames($("#namesIn").value).length;
   $("#nCount").textContent = n;
-  $("#perGroup").textContent = perGroupText(n, stage().groupCount);
+  $("#perGroup").textContent = perGroupText(n, view().group.groupCount);
 }
 $("#titleIn").addEventListener("input", e => { draft.title = e.target.value; markChanged(); });
-$("#namesIn").addEventListener("input", () => { stage().names = parseNames($("#namesIn").value); refreshCount(); markChanged(); });
-$("#namesIn").addEventListener("change", renderSetup);
-$("#sampleBtn").onclick = () => { $("#namesIn").value = SAMPLE.join("\n"); stage().names = SAMPLE.slice(); renderSetup(); markChanged(); };
-$("#clearBtn").onclick = () => { $("#namesIn").value = ""; stage().names = []; renderSetup(); markChanged(); };
-$("#groupSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; stage().groupCount = +b.dataset.v; renderSetup(); markChanged(); };
-$("#groupCustom").addEventListener("change", e => { stage().groupCount = Math.max(1, Math.min(64, +e.target.value || 1)); renderSetup(); markChanged(); });
-$("#advIn").addEventListener("change", e => { stage().adv = Math.max(0, Math.min(10, +e.target.value || 0)); renderAll(); markChanged(); });
+$("#namesIn").addEventListener("input", () => { draft.group.names = parseNames($("#namesIn").value); refreshCount(); markChanged(); });
+$("#sampleBtn").onclick = () => { $("#namesIn").value = SAMPLE.join("\n"); draft.group.names = SAMPLE.slice(); refreshCount(); markChanged(); };
+$("#clearBtn").onclick = () => { $("#namesIn").value = ""; draft.group.names = []; refreshCount(); markChanged(); };
+$("#groupSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; draft.group.groupCount = +b.dataset.v; renderSetup(); markChanged(); };
+function koHasData(d){ return d.ko.some(rd => rd.ties.some(t => t.a || t.b)) || d.final.names.some(Boolean); }
 $("#drawBtn").onclick = () => {
-  const s = stage(), names = parseNames($("#namesIn").value), g = s.groupCount;
-  if (names.length < 2) return toast("请先填入至少 2 个名字");
-  if ((s.format === "groups" || !s.format) && g > names.length) return toast("组数比人数多了，请减少组数");
-  if (isKO(s) && names.length % 2) return toast("两两对决需要偶数人数");
-  if (s.groups && !confirm("重新抽签会清空本轮所有比分，确定吗？")) return;
-  fillDraw(s, names);
+  const g = draft.group, names = parseNames($("#namesIn").value), G = g.groupCount;
+  if (names.length < 4) return toast("请先填入至少 4 个名字");
+  if (G * 2 > names.length) return toast("人数太少：每组至少要 2 人，请减少组数");
+  if (g.groups && !confirm(koHasData(draft) ? "重新抽签会清空小组赛比分，淘汰赛和冠军赛也会一起清空。确定吗？" : "重新抽签会清空小组赛所有比分，确定吗？")) return;
+  g.names = names;
+  g.groups = Array.from({length: G}, () => []);
+  shuffle(names).forEach((n, i) => g.groups[i % G].push(n));
+  g.matches = g.groups.map(makeMatches);
+  g.pts = g.groups.map(x => x.map(() => 0));
+  g.extra = [];
+  draft.ko = []; draft.final = newFinal(); ensureStructure(draft);
+  page = "group"; $("#promoBox").hidden = true;
   renderAll(); markChanged();
   $("#setupBox").open = false;
-  toast(`${s.name}：已重新抽签，确认无误后点底部「发布」`, 3000);
+  toast(`已随机分成 ${G} 组，确认无误后点底部「发布」`, 3000);
 };
 
-/* ----- 晋级下一轮（管理员） ----- */
-let nextCfg = null, prevStage = null;
-function fmtOptions(n){
-  const o = [];
-  if (n % 2 === 0 && prevStage && (prevStage.format || "groups") === "groups" && prevStage.adv === 2 && prevStage.groups.length >= 2 && n === prevStage.groups.length * 2) o.push("cross");
-  if (n % 2 === 0 && n >= 2) o.push("pairs");
-  o.push("rr", "groups");
-  return o;
+function renderGroupPage(){
+  const d = view(), g = d.group, total = groupTotal(g);
+  $("#groupTitle").textContent = total ? total + "强 · 小组赛" : "小组赛";
+  $("#groupSub").textContent = g.groups ? `${g.groups.length} 组 · 每组前 2 名晋级淘汰赛` : "";
+  document.querySelectorAll("#scoreTabs button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.v === g.scoreMode); b.disabled = !admin; });
+  $("#modeHint").textContent = g.scoreMode === "match"
+    ? "胜 3 分、平 1 分、负 0 分；同分看净胜球。第 1、2 名或第 2、3 名积分和净胜球都相同时，加赛一场，再平踢点球。" + (admin ? "填完比分点底部「发布」。" : "")
+    : "按总分排名。" + (admin ? "点按钮加减分，改完点底部「发布」。" : "");
+  $("#groupTools").hidden = !admin || !g.groups;
+  const box = $("#groups");
+  if (!g.groups) { box.innerHTML = `<div class="empty">${admin ? "在上方「小组赛设置与抽签」里填好名单，点「一键抽签分组」。" : "还没有抽签分组，请等待组织者发布。"}</div>`; return; }
+  box.innerHTML = g.groups.map((members, gi) => {
+    let body;
+    if (g.scoreMode === "match") {
+      const info = groupInfo(g, gi);
+      body = `<div class="tbl-wrap" id="gtbl-${gi}">${tableHTML(members, g.matches[gi], ADV, info.rows)}</div>
+      <div class="matches"><div class="mtitle" id="gmt-${gi}">组内对阵 · 已赛 ${g.matches[gi].filter(done).length}/${g.matches[gi].length}</div>${
+        g.matches[gi].map((m, mi) => matchRow(m, admin ? scoreInputs(`g-${gi}-${mi}`, m.sa, m.sb, `data-k="g" data-g="${gi}" data-m="${mi}"`, m.a, m.b) : "")).join("")
+      }</div><div id="gxw-${gi}">${groupExtraHTML(g, gi, info)}</div>`;
+    } else {
+      const pts = g.pts[gi] || [];
+      body = members.map((n,i)=>({n,i,v:pts[i]||0})).sort((x,y)=> y.v-x.v || x.i-y.i).map((r,k) =>
+        `<div class="prow ${k<ADV?"adv":""}"><span class="pos num">${k+1}</span><span style="font-weight:500">${esc(r.n)}</span>${
+          admin ? `<span class="steps"><button type="button" class="minus" data-g="${gi}" data-i="${r.i}" data-d="-1">−1</button><button type="button" data-g="${gi}" data-i="${r.i}" data-d="1">+1</button><button type="button" data-g="${gi}" data-i="${r.i}" data-d="3">+3</button></span>` : "<span></span>"
+        }<span class="ppts num">${r.v}</span></div>`).join("");
+    }
+    return `<article class="group"><div class="ghead"><span class="gletter">${L(gi)}</span><span class="gname">${L(gi)} 组</span><span class="gsub">${members.length} 人</span></div>${body}</article>`;
+  }).join("");
 }
-function defaultFormat(n){
-  const o = fmtOptions(n);
-  if (n === 4) return "rr";              // 4 强打循环赛
-  if (o.includes("cross")) return "cross"; // 小组赛后：第一对第二
-  if (o.includes("pairs")) return "pairs"; // 之后：胜者随机两两对决
-  return "groups";
-}
-function renderAdv(){
-  if ($("#advBox").hidden || !nextCfg) return;
-  const n = parseNames($("#advNames").value).length, opts = fmtOptions(n);
-  if (!opts.includes(nextCfg.format)) nextCfg.format = defaultFormat(n);
-  $("#advCount").textContent = n;
-  $("#advStageName").textContent = n ? stageName(n) : "-";
-  $("#advFmtSeg").innerHTML = opts.map(f => `<button type="button" data-v="${f}" aria-pressed="${nextCfg.format===f}">${FORMATS[f]}</button>`).join("");
-  const f = nextCfg.format;
-  $("#advFmtHint").textContent =
-    f === "cross" ? `小组第一对另一组的小组第二，随机配对，同组不相遇。${n/2} 组对决，每组打两回合，比积分，同分看净胜球。名单前一半是小组第一、后一半是对应的小组第二。`
-    : f === "pairs" ? `随机两两对决，${n/2} 组，每组打两回合，比积分，同分看净胜球。`
-    : f === "rr" ? `${n} 人一组循环赛，每人赛 ${n-1} 场，共 ${n*(n-1)/2} 场，积分第一名是冠军。`
-    : "按下面的组数随机分组，打小组赛。";
-  $("#advGroupBlock").hidden = f !== "groups";
-  $("#advNextAdvRow").hidden = f !== "groups";
-  $("#advGroupSeg").innerHTML = segOptions(n).map(v => `<button type="button" data-v="${v}" aria-pressed="${nextCfg.groupCount===v}">${n && n/v === 2 ? "两两对决" : v + " 组"}</button>`).join("");
-  $("#advGroupCustom").value = nextCfg.groupCount;
-  $("#advNextAdv").value = nextCfg.adv;
-  $("#advPerGroup").textContent = perGroupText(n, nextCfg.groupCount);
-}
-function defaultAdvFor(n, g){ return Math.ceil(n / g) <= 2 ? 1 : 2; }
-$("#advOpen").onclick = () => {
-  const s = stage(), q = qualifiers(s), n = q.length;
-  if (n < 2) return toast("晋级人数不足 2 人，请先调整每组晋级名额");
-  prevStage = s;
-  const g = Math.max(1, Math.floor(n / 4));
-  nextCfg = { format: defaultFormat(n), groupCount: g, adv: defaultAdvFor(n, g) };
-  $("#advNames").value = q.join("\n");
-  $("#advIntro").textContent = `根据「${s.name}」当前排名，共 ${n} 人晋级。确认后会新建一轮，「${s.name}」的结果保留在后面的页签里。`;
-  const left = unfinished(s), tie = ties(s), msgs = [];
-  if (left) msgs.push(`本轮还有 ${left} 场比赛没填比分，排名可能还会变。`);
-  if (tie) msgs.push(`有 ${tie} 组对决两回合打完积分和净胜球都一样，请在下面名单里把实际晋级的人改对（比如加赛或点球胜者）。`);
-  $("#advWarn").hidden = !msgs.length;
-  $("#advWarn").textContent = msgs.length ? "注意：" + msgs.join("") : "";
-  $("#advBox").hidden = false;
-  renderAdv();
-  $("#advBox").scrollIntoView({ behavior: "smooth", block: "start" });
-};
-$("#advCancel").onclick = () => { $("#advBox").hidden = true; };
-$("#advNames").addEventListener("input", () => {
-  const n = parseNames($("#advNames").value).length;
-  if (nextCfg.groupCount > n) nextCfg.groupCount = Math.max(1, Math.floor(n / 2));
-  renderAdv();
+$("#scoreTabs").onclick = e => { const b = e.target.closest("button"); if (!b || !admin) return; draft.group.scoreMode = b.dataset.v; renderAll(); markChanged(); };
+$("#groups").addEventListener("click", e => {
+  const b = e.target.closest(".steps button"); if (!b || !admin) return;
+  const g = draft.group, gi = +b.dataset.g, i = +b.dataset.i;
+  g.pts[gi][i] = (g.pts[gi][i] || 0) + (+b.dataset.d);
+  renderGroupPage(); markChanged();
 });
-$("#advFmtSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; nextCfg.format = b.dataset.v; renderAdv(); };
-$("#advGroupSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; nextCfg.groupCount = +b.dataset.v; nextCfg.adv = defaultAdvFor(parseNames($("#advNames").value).length, nextCfg.groupCount); renderAdv(); };
-$("#advGroupCustom").addEventListener("change", e => { nextCfg.groupCount = Math.max(1, Math.min(64, +e.target.value || 1)); renderAdv(); });
-$("#advNextAdv").addEventListener("change", e => { nextCfg.adv = Math.max(0, Math.min(10, +e.target.value || 0)); renderAdv(); });
-$("#advGo").onclick = () => {
-  const names = parseNames($("#advNames").value), f = nextCfg.format, g = nextCfg.groupCount;
-  if (names.length < 2) return toast("晋级名单至少要 2 人");
-  if (f === "groups" && g > names.length) return toast("组数比人数多了，请减少组数");
-  if ((f === "cross" || f === "pairs") && names.length % 2) return toast("两两对决需要偶数人数");
-  if (!confirm(`确认用这 ${names.length} 人（${FORMATS[f]}）生成「${stageName(names.length)}」？`)) return;
-  const s = newStage({ format: f, groupCount: g, adv: f === "groups" ? nextCfg.adv : 1, scoreMode: "match" });
-  fillDraw(s, names);
-  draft.stages.push(s);
-  sel = -1;
-  $("#advBox").hidden = true;
-  renderAll(); markChanged();
-  window.scrollTo({ top: 0, behavior: "smooth" });
-  toast(`已生成「${s.name}」，确认无误后点底部「发布」`, 3500);
+$("#groupReset").onclick = () => {
+  if (!confirm("小组分组不变，所有小组赛比分和积分归零，确定吗？（淘汰赛不受影响）")) return;
+  draft.group.matches.forEach(g => g.forEach(m => { m.sa = ""; m.sb = ""; }));
+  draft.group.pts = draft.group.groups.map(g => g.map(() => 0));
+  draft.group.extra = [];
+  renderAll(); markChanged(); toast("已清零，点「发布」后生效");
 };
 $("#restartBtn").onclick = () => {
-  const first = draft.stages[0];
-  if (!confirm(`全部重新开始？\n\n所有轮次（${draft.stages.map(x => x.name || "未命名").join("、")}）的分组和比分都会清空，回到第一轮。参赛名单保留，你重新抽签就行。`)) return;
-  draft.stages = [newStage({ names: first.names.slice(), groupCount: first.groupCount, adv: first.adv, scoreMode: first.scoreMode })];
-  sel = -1;
-  $("#advBox").hidden = true;
+  if (!confirm("全部重新开始？\n\n小组赛、淘汰赛、冠军赛的分组和比分都会清空。参赛名单保留，你重新抽签就行。")) return;
+  Object.assign(draft.group, { groups: null, matches: null, pts: null, extra: [] });
+  draft.ko = []; draft.final = newFinal(); ensureStructure(draft);
+  page = "group"; $("#promoBox").hidden = true;
   renderAll(); markChanged();
   $("#setupBox").open = true;
   window.scrollTo({ top: 0, behavior: "smooth" });
-  toast("已清空所有轮次。在「本轮设置与抽签」里重新抽签，然后点「发布」", 4000);
-};
-$("#delStageBtn").onclick = () => {
-  const s = stage();
-  if (!confirm(`删除「${s.name || "这一轮"}」？上一轮会重新变成进行中。`)) return;
-  draft.stages.pop(); sel = -1; renderAll(); markChanged(); toast("已删除，点「发布」后生效");
+  toast("已全部清空。在「小组赛设置与抽签」里重新抽签，然后点「发布」", 4000);
 };
 
-/* ----- 录分（管理员） ----- */
-$("#groups").addEventListener("input", e => {
+/* 小组出线 → 填入淘汰赛 */
+$("#promoOpen").onclick = () => {
+  const g = draft.group, G = g.groups.length;
+  if (koRoundCount(G) < 0) return toast("淘汰赛对阵需要 2、4、8 或 16 组，请重新选择组数抽签");
+  $("#promoGrid").innerHTML = g.groups.map((members, gi) => {
+    const rk = groupRank(g, gi);
+    return [0, 1].map(k => `<div><label for="pr-${gi}-${k}">${L(gi)}${k+1}（${L(gi)}组第${k+1}）</label><select id="pr-${gi}-${k}">${
+      members.map(n => `<option value="${esc(n)}" ${n === rk[k] ? "selected" : ""}>${esc(n)}</option>`).join("")
+    }</select></div>`).join("");
+  }).join("");
+  const left = groupUnfinished(g);
+  $("#promoIntro").textContent = "已按当前排名自动选好各组第一、第二。遇到同分等需要调整时，直接改下拉框。确认后按世界杯规则填进淘汰赛对阵图（A1 对 B2、B1 对 A2…）。";
+  const pend = groupPending(g);
+  const w = (left ? `小组赛还有 ${left} 场没填比分，排名可能还会变。` : "") + (pend.length ? `${pend.join("、")}有同分还没加赛决出，请先填加赛比分，或在下面手动选好名次。` : "") + (koHasData(draft) ? "淘汰赛已经填过，确认后会重新填入，淘汰赛和冠军赛的比分会清空。" : "");
+  $("#promoWarn").hidden = !w; $("#promoWarn").textContent = w;
+  $("#promoBox").hidden = false;
+  $("#promoBox").scrollIntoView({ behavior: "smooth", block: "start" });
+};
+$("#promoCancel").onclick = () => { $("#promoBox").hidden = true; };
+$("#promoGo").onclick = () => {
+  const g = draft.group, G = g.groups.length, pos = {};
+  for (let gi = 0; gi < G; gi++) {
+    const a = $(`#pr-${gi}-0`).value, b = $(`#pr-${gi}-1`).value;
+    if (a === b) return toast(`${L(gi)}组的第一和第二选了同一个人，请改一下`);
+    pos[L(gi) + "1"] = a; pos[L(gi) + "2"] = b;
+  }
+  if (koHasData(draft) && !confirm("淘汰赛和冠军赛会重新填入，已有比分会清空。确定吗？")) return;
+  draft.ko = []; draft.final = newFinal(); ensureStructure(draft);
+  if (draft.ko.length) {
+    firstRoundSlots(G).forEach((slot, t) => { draft.ko[0].ties[t].a = pos[slot[0]]; draft.ko[0].ties[t].b = pos[slot[1]]; });
+    page = "ko";
+  } else { // 只有 2 组：前两名直接进冠军赛
+    draft.final.names = ["A1", "B2", "B1", "A2"].map(k => pos[k]);
+    draft.final.matches = makeMatches(draft.final.names);
+    page = "final";
+  }
+  $("#promoBox").hidden = true;
+  renderAll(); markChanged();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  toast("已填入对阵，确认无误后点底部「发布」", 3500);
+};
+
+/* ============ 导出 / 导入 ============ */
+function copyOut(text, okMsg){
+  const out = $("#outText");
+  const fallback = () => { out.hidden = false; out.value = text; out.focus(); out.select(); out.scrollIntoView({ block: "center" }); toast("请长按选择下方文字复制"); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => { out.hidden = true; toast(okMsg); }, fallback);
+  else fallback();
+}
+function groupsText(d){
+  const g = d.group; if (!g.groups) return "";
+  return ["【" + (d.title || "CENTRAL LEAGUE") + " · 分组】"].concat(g.groups.map((m, gi) => L(gi) + "组：" + m.join("、"))).join("\n");
+}
+$("#exportGroups").onclick = () => { const t = groupsText(view()); if (!t) return toast("还没有分组"); copyOut(t, "分组文字已复制"); };
+$("#exportBackup").onclick = () => {
+  const d = clone(view()); d._backup = "CENTRAL LEAGUE 积分榜备份"; d._exportedAt = new Date().toISOString();
+  copyOut(JSON.stringify(d), "完整备份已复制，请粘贴保存到备忘录或发给自己");
+};
+const splitInline = s => s.split(/[、,，;；|｜]+|\s{2,}|\t/).map(x => x.trim()).filter(Boolean);
+// 识别导入内容：完整备份（JSON）或分组文字
+function parseImport(text){
+  const t = String(text || "").trim();
+  if (!t) return { error: "请先粘贴要导入的内容" };
+  if (t[0] === "{") {
+    try {
+      const d = normalize(JSON.parse(t));
+      if (d.group.groups || (d.group.names && d.group.names.length)) return { kind: "backup", data: d };
+      return { error: "这份备份里没有分组数据" };
+    } catch (e) { return { error: "看起来是备份，但内容不完整，请确认整段都复制了" }; }
+  }
+  const groups = []; let cur = null;
+  t.split(/\r?\n/).map(x => x.trim()).filter(Boolean).forEach(line => {
+    const m = line.match(/^(?:第\s*)?([A-Za-z])\s*组\s*[:：]?\s*(.*)$/);
+    if (m) { cur = { letter: m[1].toUpperCase(), names: [] }; groups.push(cur); if (m[2]) cur.names.push(...splitInline(m[2])); return; }
+    if (!cur || /^https?:\/\//.test(line) || /^[【\[]/.test(line) || /^冠军/.test(line)) return;
+    // 「1. 西班牙  3胜0平0负  9分 ✓」→ 西班牙
+    let nm = line.replace(/^\d+\s*[.、)）．]\s*/, "");
+    nm = nm.split(/\s{2,}|\t/)[0].replace(/\s*[✓√✔]\s*$/, "").trim();
+    if (/^\d+\s*胜/.test(nm)) return;
+    cur.names.push(...splitInline(nm));
+  });
+  if (groups.length < 2) return { error: "没识别到分组。每组要以「A组」「B组」开头，比如：A组：张三、李四、王五" };
+  groups.sort((a, b) => a.letter.localeCompare(b.letter));
+  const small = groups.filter(g => g.names.length < 2);
+  if (small.length) return { error: `${small.map(g => g.letter + "组").join("、")}少于 2 人，请检查内容` };
+  const seen = {}, dup = [];
+  groups.forEach(g => g.names.forEach(n => { if (seen[n]) dup.push(n); seen[n] = 1; }));
+  if (dup.length) return { error: "有重名：" + [...new Set(dup)].join("、") + "。同一个名字只能出现一次，请改成不同的名字" };
+  return { kind: "groups", groups: groups.map(g => g.names), letters: groups.map(g => g.letter) };
+}
+let pendingImport = null;
+$("#importCheck").onclick = () => {
+  const r = parseImport($("#importIn").value);
+  pendingImport = r.error ? null : r;
+  const pv = $("#importPreview");
+  pv.hidden = false; $("#importActions").hidden = !!r.error;
+  if (r.error) { pv.textContent = r.error; return; }
+  const willClear = view().group.groups ? "导入后会替换现有的分组，" : "";
+  if (r.kind === "backup") {
+    const g = r.data.group, n = g.groups ? g.groups.reduce((a, x) => a + x.length, 0) : g.names.length;
+    pv.textContent = `识别到完整备份：「${r.data.title}」，${g.groups ? g.groups.length + " 组 " : ""}${n} 人${r.data.ko.some(x => x.ties.some(t => t.a)) ? "，含淘汰赛" : ""}${r.data.final.names.some(Boolean) ? "，含冠军赛" : ""}。${willClear}三个页面都恢复成备份里的样子。`;
+  } else {
+    const total = r.groups.reduce((a, x) => a + x.length, 0), G = r.groups.length;
+    pv.textContent = `识别到 ${G} 组、共 ${total} 人：` + r.groups.map((m, i) => `${L(i)}组 ${m.length} 人`).join("，") + "。" + willClear + "小组赛比分从零开始，淘汰赛和冠军赛清空。"
+      + (koRoundCount(G) < 0 ? `注意：淘汰赛对阵图需要 2、4、8 或 16 组，现在是 ${G} 组。` : "")
+      + (r.letters.some((x, i) => x !== L(i)) ? `（组名按顺序重新排成 A 到 ${L(G - 1)}）` : "");
+  }
+};
+$("#importClear").onclick = () => { $("#importIn").value = ""; $("#importPreview").hidden = true; $("#importActions").hidden = true; pendingImport = null; };
+$("#importGo").onclick = () => {
+  if (!pendingImport) return;
+  if (pendingImport.kind === "backup") {
+    draft = clone(pendingImport.data); delete draft._backup; delete draft._exportedAt;
+  } else {
+    const g = draft.group, groups = pendingImport.groups;
+    g.groups = groups.map(x => x.slice());
+    g.names = [].concat(...groups);
+    g.groupCount = groups.length;
+    g.matches = g.groups.map(makeMatches);
+    g.pts = g.groups.map(x => x.map(() => 0));
+    g.extra = [];
+    draft.ko = []; draft.final = newFinal(); ensureStructure(draft);
+  }
+  pendingImport = null; page = null;
+  $("#importIn").value = ""; $("#importPreview").hidden = true; $("#importActions").hidden = true;
+  $("#ioBox").open = false; $("#promoBox").hidden = true;
+  renderAll(); markChanged();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  toast("已导入，确认无误后点底部「发布」", 3500);
+};
+
+/* ============ 第 2 页：淘汰赛 ============ */
+function renderKoPage(){
+  const d = view(), R = d.ko.length, G = G_of(d), f = d.final, ch = champion(f);
+  const bad = koRoundCount(G) < 0;
+  $("#koUnsupported").hidden = !bad;
+  $("#koUnsupported").textContent = "淘汰赛对阵图需要小组数是 2、4、8 或 16 组。请在小组赛页重新选择组数并抽签。";
+  $("#bracketWrap").hidden = bad;
+  if (bad) { $("#rounds").innerHTML = ""; return; }
+
+  // —— 对阵图 ——
+  const cols = d.ko.map((rd, r) => `<div class="bcol"><h4>${koName(d, r)}</h4><div class="bties">${
+    rd.ties.map((tie, t) => {
+      const res = tieResult(tie);
+      const line = side => {
+        const nm = side ? tie.b : tie.a;
+        const cls = res.winner ? (res.winner === nm ? "win" : "lose") : "";
+        const p = res.played ? (side ? res.pb : res.pa) : "";
+        return `<div class="bl ${cls}"><span class="bn ${nm ? "" : "ph"}">${esc(nm || slotLabel(d, r, t, side))}</span><span class="bp num">${p}</span></div>`;
+      };
+      return `<div class="btie" data-r="${r}" data-t="${t}"><span class="bcode">${esc(tieCode(d, r, t))}</span>${line(0)}${line(1)}</div>`;
+    }).join("")
+  }</div></div>`).join("");
+  const finalCol = `<div class="bcol"><h4>4强 · 冠军赛</h4><div class="bties"><div class="bfinal" id="goFinal">${
+    [0,1,2,3].map(i => `<div class="bl"><span class="bn ${f.names[i] ? "" : "ph"}">${esc(f.names[i] || finalSlotLabel(d, i))}</span></div>`).join("")
+  }${ch ? `<div class="champ-line">冠军：${esc(ch)}</div>` : ""}</div></div></div>`;
+  $("#bracket").innerHTML = cols + finalCol;
+
+  // —— 每一轮的两回合比分 ——
+  $("#rounds").innerHTML = d.ko.map((rd, r) => {
+    const filled = rd.ties.every(t => t.a && t.b);
+    const allDone = filled && rd.ties.every(t => tieResult(t).winner);
+    const nextLabel = r + 1 < R ? koName(d, r + 1) : "冠军赛";
+    const ties = rd.ties.map((tie, t) => {
+      const res = tieResult(tie);
+      const A = tie.a || slotLabel(d, r, t, 0), B = tie.b || slotLabel(d, r, t, 1);
+      let body;
+      if (!tie.a || !tie.b) body = `<div class="ph-note">等待上一轮晋级后填入：${esc(A)} 对 ${esc(B)}</div>`;
+      else {
+        const legs = tie.legs.map((lg, li) => {
+          const m = { a: li === 0 ? A : B, b: li === 0 ? B : A, sa: lg.sa, sb: lg.sb };
+          return matchRow(m, admin ? scoreInputs(`k-${r}-${t}-${li}`, lg.sa, lg.sb, `data-k="k" data-r="${r}" data-t="${t}" data-l="${li}"`, m.a, m.b) : "", `第 ${li+1} 回合 · ${esc(m.a)} 主场`);
+        }).join("");
+        let agg;
+        if (res.played < 2) agg = `<span class="hint" style="margin:0">两回合合计：${esc(A)} ${res.pa} 分 · ${esc(B)} ${res.pb} 分（已赛 ${res.played}/2）</span>`;
+        else {
+          agg = `<span class="hint" style="margin:0">合计积分 ${res.pa}:${res.pb} · 总进球 ${res.ga}:${res.gb}</span>`;
+          if (res.tied) {
+            agg += `<span class="res tied">两回合积分和净胜球都相同，加赛一场决胜负，再平就踢点球</span>`;
+            agg += `<div class="matches" style="border-top:0;padding:4px 0 0">${extraRows(tie.a, tie.b, tie.extra, `x-${r}-${t}`, `data-k="x" data-r="${r}" data-t="${t}"`)}</div>`;
+          }
+          if (res.winner) agg += `<span class="res win">${esc(res.winner)} 晋级${res.tied ? "（" + (extraText(tie.extra) || "判定") + "）" : ""}</span>`;
+          else if (res.tied) agg += `<span class="hint" style="margin:0">${res.extra && res.extra.needPens ? "加赛打平，请填写点球比分" : "请填写加赛比分"}</span>`;
+        }
+        body = `<div class="matches" style="border-top:0">${legs}</div><div class="agg">${agg}</div>`;
+      }
+      return `<article class="tie" id="tie-${r}-${t}"><div class="ghead"><span class="gletter">${t+1}</span><span class="gname">${koName(d, r)} 第${t+1}组</span><span class="gsub">${esc(r === 0 ? tieCode(d, r, t) : slotLabel(d, r, t, 0).replace(" ", "") + " vs " + slotLabel(d, r, t, 1).replace(" ", ""))}</span></div>${body}</article>`;
+    }).join("");
+    const btn = admin && filled ? `<div class="row"><button type="button" class="primary" data-advance="${r}" ${allDone ? "" : "disabled"}>确认晋级 → 填入${nextLabel}</button>${allDone ? "" : '<span class="hint" style="margin:0">本轮每组都决出胜者后才能晋级</span>'}<button type="button" class="danger" data-koreset="${r}">清零本轮比分</button></div>` : "";
+    return `<section class="round"><h3>${koName(d, r)}</h3><div class="ties">${ties}</div>${btn}</section>`;
+  }).join("");
+}
+$("#bracket").addEventListener("click", e => {
+  if (e.target.closest("#goFinal")) { page = "final"; renderAll(); window.scrollTo({ top: 0 }); return; }
+  const b = e.target.closest(".btie"); if (!b) return;
+  const el = document.getElementById(`tie-${b.dataset.r}-${b.dataset.t}`); if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+  el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1400);
+});
+// 清空第 r 轮之后的所有轮次和冠军赛
+function clearAfter(r){
+  for (let k = r + 1; k < draft.ko.length; k++) draft.ko[k].ties = draft.ko[k].ties.map(newTie);
+  draft.final = newFinal();
+}
+function laterFilled(r){ return draft.ko.slice(r + 1).some(x => x.ties.some(t => t.a)) || draft.final.names.some(Boolean); }
+$("#rounds").addEventListener("click", e => {
+  if (!admin) return;
+  const pk = e.target.closest("[data-pick]");
+  if (pk) {
+    const r = +pk.dataset.r;
+    if (laterFilled(r) && !confirm("后面的轮次已经填过，改判后会清空后面的对阵和比分。确定吗？")) return;
+    draft.ko[r].ties[+pk.dataset.t].pick = pk.dataset.pick;
+    if (laterFilled(r)) clearAfter(r);
+    renderAll(); markChanged(); return;
+  }
+  const adv = e.target.closest("[data-advance]");
+  if (adv) {
+    const r = +adv.dataset.advance, winners = draft.ko[r].ties.map(t => tieResult(t).winner);
+    if (winners.some(w => !w)) return toast("还有组没决出胜者");
+    if (laterFilled(r) && !confirm("后面的轮次已经填过，确认后会重新填入，后面的比分会清空。确定吗？")) return;
+    clearAfter(r);
+    if (r + 1 < draft.ko.length) {
+      draft.ko[r + 1].ties.forEach((t, j) => { t.a = winners[2*j]; t.b = winners[2*j+1]; });
+      toast(`已填入${koName(draft, r + 1)}，确认无误后点底部「发布」`, 3000);
+    } else {
+      draft.final.names = winners.slice(0, 4);
+      draft.final.matches = makeMatches(draft.final.names);
+      page = "final";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      toast("已填入冠军赛，确认无误后点底部「发布」", 3000);
+    }
+    renderAll(); markChanged(); return;
+  }
+  const rs = e.target.closest("[data-koreset]");
+  if (rs) {
+    const r = +rs.dataset.koreset;
+    if (!confirm(`${koName(draft, r)}的比分全部清零，后面的轮次也会清空。确定吗？`)) return;
+    draft.ko[r].ties.forEach(t => { t.legs = newTie().legs; t.extra = newExtra(); t.pick = null; });
+    clearAfter(r); renderAll(); markChanged();
+  }
+});
+
+/* ============ 第 3 页：冠军赛 ============ */
+function renderFinalPage(){
+  const d = view(), f = d.final, ch = champion(f);
+  $("#champ").hidden = !ch;
+  if (ch) $("#champName").textContent = ch;
+  $("#finalReset").hidden = !admin || !finalReady(f);
+  const box = $("#finalBody");
+  if (!finalReady(f)) {
+    box.innerHTML = `<div class="empty">等待淘汰赛结束后填入 4 强：<br>${[0,1,2,3].map(i => esc(finalSlotLabel(d, i))).join("、")}</div>`;
+    return;
+  }
+  const tiedTop = finalTiedTop(f);
+  box.innerHTML = `<article class="group"><div class="ghead"><span class="gletter">★</span><span class="gname">4强 · 单循环积分赛</span><span class="gsub">每人赛 3 场</span></div>
+    <div class="tbl-wrap">${tableHTML(f.names, f.matches, 1)}</div>
+    <div class="matches"><div class="mtitle">全部对阵 · 已赛 ${f.matches.filter(done).length}/${f.matches.length}</div>${
+      f.matches.map((m, mi) => matchRow(m, admin ? scoreInputs(`f-${mi}`, m.sa, m.sb, `data-k="f" data-m="${mi}"`, m.a, m.b) : "")).join("")
+    }</div>
+    ${tiedTop.length === 2 ? `<div class="agg"><span class="res tied">${tiedTop.map(esc).join(" 和 ")} 积分、净胜球都相同，加赛一场决出冠军，再平就踢点球</span>
+      <div class="matches" style="border-top:0;padding:4px 0 0">${extraRows(tiedTop[0], tiedTop[1], f.extra, "fx", 'data-k="fx"')}</div>
+      ${ch ? `<span class="res win">冠军：${esc(ch)}（${esc(extraText(f.extra) || "判定")}）</span>` : `<span class="hint" style="margin:0">${extraResult(f.extra).needPens ? "加赛打平，请填写点球比分" : "请填写加赛比分"}</span>`}</div>` : ""}
+    ${tiedTop.length > 2 ? `<div class="agg"><span class="res tied">${tiedTop.map(esc).join("、")} 积分、净胜球都相同${ch ? "，已判定冠军：" + esc(ch) : "，请加赛后判定冠军"}</span>${
+      admin ? `<div class="row">${tiedTop.map(n => `<button type="button" data-champ="${esc(n)}">判定 ${esc(n)} 夺冠</button>`).join("")}</div>` : ""}</div>` : ""}
+  </article>`;
+}
+$("#finalBody").addEventListener("click", e => { const b = e.target.closest("[data-champ]"); if (!b || !admin) return; draft.final.pick = b.dataset.champ; renderAll(); markChanged(); });
+$("#finalReset").onclick = () => {
+  if (!confirm("冠军赛比分全部清零，确定吗？")) return;
+  draft.final.matches.forEach(m => { m.sa = ""; m.sb = ""; }); draft.final.extra = newExtra(); draft.final.pick = null;
+  renderAll(); markChanged();
+};
+
+/* ============ 录比分（三页共用） ============ */
+document.addEventListener("input", e => {
   const el = e.target; if (!admin || !el.classList.contains("score-in")) return;
   const v = el.value.replace(/[^\d]/g, "").slice(0, 3); el.value = v;
-  const s = stage(), gi = +el.dataset.g, m = s.matches[gi][+el.dataset.m];
-  m[el.dataset.s] = v;
-  $("#tbl-" + gi).innerHTML = tableHTML(s, gi);
-  const row = el.closest(".match"), ok = done(m);
-  row.classList.toggle("done", ok);
-  row.querySelector(".a").classList.toggle("w", ok && +m.sa > +m.sb);
-  row.querySelector(".b").classList.toggle("w", ok && +m.sb > +m.sa);
-  $("#mt-" + gi).textContent = playedText(s, gi);
-  markChanged();
-  renderStages();
+  const k = el.dataset.k, s = el.dataset.s;
+  if (k === "g") {
+    const gi = +el.dataset.g, m = draft.group.matches[gi][+el.dataset.m];
+    m[s] = v;
+    const info = groupInfo(draft.group, gi);
+    $("#gtbl-" + gi).innerHTML = tableHTML(draft.group.groups[gi], draft.group.matches[gi], ADV, info.rows);
+    $("#gxw-" + gi).innerHTML = groupExtraHTML(draft.group, gi, info);
+    $("#gmt-" + gi).textContent = `组内对阵 · 已赛 ${draft.group.matches[gi].filter(done).length}/${draft.group.matches[gi].length}`;
+    const row = el.closest(".match"), ok = done(m);
+    row.classList.toggle("done", ok);
+    row.querySelector(".a").classList.toggle("w", ok && +m.sa > +m.sb);
+    row.querySelector(".b").classList.toggle("w", ok && +m.sb > +m.sa);
+    markChanged(); return;
+  }
+  if (k === "k") {
+    const r = +el.dataset.r, tie = draft.ko[r].ties[+el.dataset.t];
+    tie.legs[+el.dataset.l][s] = v; tie.pick = null;
+    markChanged(); rerenderKeepFocus(renderKoPage, el.id); renderPages(); return;
+  }
+  if (k === "gx") {
+    const g = draft.group, gi = +el.dataset.g, P = groupInfo(g, gi).playoff;
+    if (!P) return;
+    g.extra = Array.isArray(g.extra) ? g.extra : [];
+    const cur = g.extra[gi] && g.extra[gi].a === P.a && g.extra[gi].b === P.b ? g.extra[gi] : Object.assign(newExtra(), { a: P.a, b: P.b });
+    cur[s] = v; g.extra[gi] = cur;
+    markChanged(); rerenderKeepFocus(renderGroupPage, el.id); return;
+  }
+  if (k === "x") {
+    const tie = draft.ko[+el.dataset.r].ties[+el.dataset.t];
+    tie.extra = Object.assign(newExtra(), tie.extra || {}); tie.extra[s] = v;
+    markChanged(); rerenderKeepFocus(renderKoPage, el.id); renderPages(); return;
+  }
+  if (k === "fx") {
+    draft.final.extra = Object.assign(newExtra(), draft.final.extra || {}); draft.final.extra[s] = v; draft.final.pick = null;
+    markChanged(); rerenderKeepFocus(renderFinalPage, el.id); renderPages(); return;
+  }
+  if (k === "f") {
+    draft.final.matches[+el.dataset.m][s] = v; draft.final.pick = null;
+    markChanged(); rerenderKeepFocus(renderFinalPage, el.id); renderPages();
+  }
 });
-$("#groups").addEventListener("click", e => {
-  const b = e.target.closest(".steps button"); if (!b || !admin) return;
-  const s = stage(), gi = +b.dataset.g, i = +b.dataset.i;
-  s.pts[gi][i] = (s.pts[gi][i] || 0) + (+b.dataset.d);
-  renderGroups(); markChanged();
-});
-$("#scoreTabs").onclick = e => { const b = e.target.closest("button"); if (!b || !admin) return; stage().scoreMode = b.dataset.v; renderAll(); markChanged(); };
-$("#resetBtn").onclick = () => {
-  const s = stage();
-  if (!confirm(`「${s.name}」分组不变，所有比分和积分归零，确定吗？`)) return;
-  s.matches.forEach(g => g.forEach(m => { m.sa = ""; m.sb = ""; }));
-  s.pts = s.groups.map(g => g.map(() => 0));
-  renderAll(); markChanged(); toast("已清零，点「发布」后生效");
-};
+function rerenderKeepFocus(fn, id){
+  const pos = document.activeElement && document.activeElement.id === id ? document.activeElement.selectionStart : null;
+  fn();
+  const el = document.getElementById(id);
+  if (el) { el.focus({ preventScroll: true }); try { if (pos != null) el.setSelectionRange(pos, pos); } catch(e){} }
+}
 
-/* ----- 复制结果 ----- */
-function resultText(){
-  const d = view(), s = stage(); if (!s.groups) return "";
-  const lines = ["【" + (d.title || "积分榜") + (s.name ? " · " + s.name : "") + "】"];
-  s.groups.forEach((members, gi) => {
-    lines.push("", groupLabel(s, gi));
-    if (s.scoreMode === "points") pointsRows(s, gi).forEach((r,k) => lines.push(`${k+1}. ${r.n}  ${r.v}分${k<s.adv?" ✓":""}`));
-    else standings(members, s.matches[gi]).forEach((r,k) => lines.push(`${k+1}. ${r.n}  ${r.w}胜${r.d}平${r.l}负  ${r.pts}分${k<s.adv?" ✓":""}`));
-  });
-  const c = isLatest() ? champion(s) : null;
-  if (c) lines.push("", "冠军：" + c);
+/* ============ 复制结果 ============ */
+function resultText(which){
+  const d = view(), lines = ["【" + (d.title || "积分榜") + "】"];
+  if (which === "group") {
+    const g = d.group; if (!g.groups) return "";
+    g.groups.forEach((members, gi) => {
+      lines.push("", L(gi) + " 组");
+      if (g.scoreMode === "points") { const pts = g.pts[gi] || []; members.map((n,i)=>({n,v:pts[i]||0,i})).sort((x,y)=>y.v-x.v||x.i-y.i).forEach((r,k)=>lines.push(`${k+1}. ${r.n}  ${r.v}分${k<ADV?" ✓":""}`)); }
+      else {
+        const info = groupInfo(g, gi);
+        info.rows.forEach((r,k) => lines.push(`${k+1}. ${r.n}  ${r.w}胜${r.d}平${r.l}负  ${r.pts}分${k<ADV?" ✓":""}`));
+        if (info.playoff && info.x && extraText(info.x)) lines.push(`加赛：${info.playoff.a} vs ${info.playoff.b}  ${extraText(info.x)}`);
+      }
+    });
+  } else if (which === "ko") {
+    if (!d.ko.length) return "";
+    d.ko.forEach((rd, r) => {
+      lines.push("", koName(d, r));
+      rd.ties.forEach((t, i) => {
+        const res = tieResult(t), A = t.a || slotLabel(d, r, i, 0), B = t.b || slotLabel(d, r, i, 1);
+        const legs = t.a && t.b ? t.legs.map(lg => done(lg) ? lg.sa + ":" + lg.sb : "-:-").join("，") : "";
+        const ex = res.tied ? extraText(t.extra) : "";
+        lines.push(`${i+1}. ${A} vs ${B}${legs ? "  （" + legs + (ex ? "；" + ex : "") + "）" : ""}${res.winner ? "  → " + res.winner + " 晋级" : ""}`);
+      });
+    });
+  } else {
+    const f = d.final; if (!finalReady(f)) return "";
+    lines.push("", "4强 · 冠军赛");
+    finalStandings(f).forEach((r,k) => lines.push(`${k+1}. ${r.n}  ${r.w}胜${r.d}平${r.l}负  ${r.pts}分`));
+    const tt = finalTiedTop(f), ex = tt.length === 2 ? extraText(f.extra) : "";
+    if (ex) lines.push(`加赛：${tt[0]} vs ${tt[1]}  ${ex}`);
+    const ch = champion(f); if (ch) lines.push("", "冠军：" + ch);
+  }
   lines.push("", location.href.split("?")[0].split("#")[0]);
   return lines.join("\n");
 }
-$("#copyBtn").onclick = () => {
-  const t = resultText(); if (!t) return toast("还没有分组");
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-copy]"); if (!b) return;
+  const t = resultText(b.dataset.copy); if (!t) return toast("这一页还没有内容");
   const out = $("#outText");
   const fallback = () => { out.hidden = false; out.value = t; out.focus(); out.select(); toast("请长按选择下方文字复制"); };
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(() => { out.hidden = true; toast("已复制，可以直接粘贴到微信"); }, fallback);
   else fallback();
-};
+});
 
-/* ----- 登录 / 发布 ----- */
-function renderAll(){ renderHeader(); renderStages(); renderSetup(); renderGroups(); renderAdminBar(); }
+/* ============ 登录 / 发布 ============ */
+function renderAll(){ renderHeader(); renderPages(); renderSetup(); renderGroupPage(); renderKoPage(); renderFinalPage(); renderAdminBar(); }
 
 $("#adminBtn").onclick = () => {
   if (!CONFIG.owner || !CONFIG.repo) { toast("没识别到 GitHub 仓库：请把网页放到 GitHub Pages 上，或在代码顶部 CONFIG 里填写 owner 和 repo", 5000); return; }
@@ -765,7 +1124,7 @@ async function login(t, remember){
     admin = true; changes = 0;
     if (remember) store("league-token", t);
     $("#loginBox").hidden = true; $("#tokenIn").value = "";
-    $("#setupBox").open = !stage().groups;
+    $("#setupBox").open = !draft.group.groups;
     renderAll();
     toast("已进入管理模式");
   } catch (err) {
@@ -788,27 +1147,25 @@ $("#publishBtn").onclick = async () => {
     if (err.message === "conflict") {
       toast("有其他管理员刚刚发布过。已载入最新版本，请重新修改后再发布", 5000);
       draft = await loadLatest().catch(() => draft); changes = 0;
-    } else if (err.message === "no_write") {
-      toast("这个密钥没有写入权限：创建密钥时 Contents 要选 Read and write", 5000);
-    } else if (err.message === "bad_token") {
-      toast("密钥已失效，请退出后重新登录", 5000);
-    } else toast("发布失败，请检查网络后再点一次", 4000);
+    } else if (err.message === "no_write") toast("这个密钥没有写入权限：创建密钥时 Contents 要选 Read and write", 5000);
+    else if (err.message === "bad_token") toast("密钥已失效，请退出后重新登录", 5000);
+    else toast("发布失败，请检查网络后再点一次", 4000);
   } finally { busy = false; renderAll(); }
 };
 $("#discardBtn").onclick = async () => {
   if (!confirm("放弃所有未发布的修改？")) return;
   try { draft = await loadLatest(); } catch (e) { draft = clone(data || normalize(null)); }
-  changes = 0; sel = -1; $("#advBox").hidden = true; renderAll();
+  changes = 0; page = null; $("#promoBox").hidden = true; renderAll();
 };
 $("#logoutBtn").onclick = () => {
   if (changes && !confirm("还有未发布的修改，退出会丢失。确定退出？")) return;
-  admin = false; token = null; draft = null; changes = 0; sel = -1; store("league-token", null);
-  $("#advBox").hidden = true;
+  admin = false; token = null; draft = null; changes = 0; page = null; store("league-token", null);
+  $("#promoBox").hidden = true;
   renderAll(); refresh();
 };
 window.addEventListener("beforeunload", e => { if (admin && changes) { e.preventDefault(); e.returnValue = ""; } });
 
-/* ----- 观众刷新 ----- */
+/* ============ 访客自动刷新 ============ */
 async function refresh(manual){
   if (admin) {
     if (!manual) return;
@@ -819,13 +1176,14 @@ async function refresh(manual){
   try {
     const d = await loadPublic();
     const changed = !data || d.updatedAt !== data.updatedAt;
-    const newStageAdded = data && d.stages.length !== data.stages.length;
+    const ap = autoPage(d);
+    if (lastAuto && ap !== lastAuto) page = null; // 比赛进入新阶段时，自动跳到最新一页
+    lastAuto = ap;
     data = d;
-    if (newStageAdded) sel = -1; // 有新一轮时自动跳到最新
     if (changed) renderAll();
     if (manual) toast(changed ? "已更新" : "已经是最新");
   } catch (e) {
-    if (!data) { $("#updated").textContent = "读取数据失败，请稍后刷新"; renderGroups(); }
+    if (!data) $("#updated").textContent = "读取数据失败，请稍后刷新";
     if (manual) toast("刷新失败，请检查网络");
   }
 }
@@ -833,7 +1191,6 @@ $("#refreshBtn").onclick = () => refresh(true);
 setInterval(() => { if (!document.hidden) refresh(false); }, CONFIG.autoRefreshSec * 1000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(false); });
 
-/* ----- 启动 ----- */
 renderAll();
 refresh(false).then(() => { const t = load("league-token"); if (t && CONFIG.owner) login(t, true); });
 </script>
