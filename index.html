@@ -426,7 +426,7 @@ function standings(members, matches){
 const L = i => LETTERS[i] || String(i + 1);
 const koName = (d, r) => (G_of(d) * 2 / Math.pow(2, r)) + "强";
 
-/* 小组排名：积分 → 净胜球 → 加赛（再平看点球）。
+/* 小组排名：积分 → 净胜球 → 总进球 → 相互战绩 → 加赛（再平看点球）。
  * 只有影响结果的并列才加赛：第 1、2 名并列（争小组第一）或第 2、3 名并列（争出线）。 */
 function groupInfo(g, gi){
   const members = g.groups[gi];
@@ -436,9 +436,27 @@ function groupInfo(g, gi){
     rows = members.map((n, i) => ({ n, i, v: pts[i] || 0 })).sort((x, y) => y.v - x.v || x.i - y.i);
     key = r => String(r.v); complete = false; // 直接加分模式不自动加赛，晋级时手动选
   } else {
-    rows = standings(members, g.matches[gi]).map(r => Object.assign(r, { i: members.indexOf(r.n) }));
-    rows.sort((x, y) => y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga) || x.i - y.i);
-    key = r => r.pts + "|" + (r.gf - r.ga);
+    // 排名：积分 → 净胜球 → 总进球 → 相互战绩（并列者之间的积分、净胜球、进球）→ 加赛/点球
+    rows = standings(members, g.matches[gi]).map(r => Object.assign(r, { i: members.indexOf(r.n), hp: 0, hgd: 0, hgf: 0 }));
+    const base = r => r.pts + "|" + (r.gf - r.ga) + "|" + r.gf;
+    rows.sort((x, y) => y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf || x.i - y.i);
+    for (let s = 0; s < rows.length; ) {
+      let e = s; while (e + 1 < rows.length && base(rows[e + 1]) === base(rows[s])) e++;
+      if (e > s) {
+        const cl = rows.slice(s, e + 1), set = new Set(cl.map(r => r.n)), h = {};
+        cl.forEach(r => h[r.n] = r);
+        g.matches[gi].forEach(m => {
+          if (!done(m) || !set.has(m.a) || !set.has(m.b)) return;
+          const A = h[m.a], B = h[m.b], sa = +m.sa, sb = +m.sb;
+          A.hgf += sa; B.hgf += sb; A.hgd += sa - sb; B.hgd += sb - sa;
+          if (sa > sb) A.hp += 3; else if (sa < sb) B.hp += 3; else { A.hp++; B.hp++; }
+        });
+        cl.sort((x, y) => y.hp - x.hp || y.hgd - x.hgd || y.hgf - x.hgf || x.i - y.i);
+        rows.splice(s, cl.length, ...cl);
+      }
+      s = e + 1;
+    }
+    key = r => base(r) + "|" + r.hp + "|" + r.hgd + "|" + r.hgf;
     complete = g.matches[gi].every(done);
   }
   let playoff = null, manual = null;
@@ -467,12 +485,12 @@ function groupRank(g, gi){ return groupInfo(g, gi).rows.map(r => r.n); }
 function groupExtraHTML(g, gi, info){
   if (info.playoff) {
     const P = info.playoff;
-    let h = `<span class="res tied">${esc(P.a)} 和 ${esc(P.b)} 积分、净胜球都相同（${P.what}），加赛一场，再平踢点球</span>`;
+    let h = `<span class="res tied">${esc(P.a)} 和 ${esc(P.b)} 积分、净胜球、进球、相互战绩都相同（${P.what}），加赛一场，再平踢点球</span>`;
     h += `<div class="matches" style="border-top:0;padding:4px 0 0">${extraRows(P.a, P.b, info.x, `gx-${gi}`, `data-k="gx" data-g="${gi}"`)}</div>`;
     h += info.res.side ? `<span class="res win">${esc(info.res.side === "a" ? P.a : P.b)} 胜出（${esc(extraText(info.x))}）</span>` : `<span class="hint" style="margin:0">${info.res.needPens ? "加赛打平，请填写点球比分" : "请填写加赛比分"}</span>`;
     return `<div class="agg">${h}</div>`;
   }
-  if (info.manual) return `<div class="agg"><span class="res tied">${info.manual.names.map(esc).join("、")} 积分、净胜球都相同（${info.manual.what}）。${info.manual.names.length} 人并列没法一场加赛决出，请自行加赛，然后在「确认晋级」时手动选名次。</span></div>`;
+  if (info.manual) return `<div class="agg"><span class="res tied">${info.manual.names.map(esc).join("、")} 积分、净胜球、进球、相互战绩都相同（${info.manual.what}）。${info.manual.names.length} 人并列没法一场加赛决出，请自行加赛，然后在「确认晋级」时手动选名次。</span></div>`;
   return "";
 }
 function groupPending(g){ // 还需要加赛或手动排名的组
@@ -625,8 +643,8 @@ function matchRow(m, inputs, legLabel){
 }
 function tableHTML(members, matches, advCount, rows){
   const st = rows || standings(members, matches);
-  return `<table><thead><tr><th>#</th><th>名称</th><th>赛</th><th>胜</th><th>平</th><th>负</th><th>净胜</th><th>积分</th></tr></thead><tbody>${
-    st.map((r,i)=>{ const gd=r.gf-r.ga; return `<tr class="${i<advCount?"adv":""}"><td class="pos num">${i+1}</td><td class="nm" title="${esc(r.n)}">${esc(r.n)}</td><td class="num">${r.p}</td><td class="num">${r.w}</td><td class="num">${r.d}</td><td class="num">${r.l}</td><td class="num ${gd>0?"gd-pos":gd<0?"gd-neg":""}">${gd>0?"+":""}${gd}</td><td class="pts num">${r.pts}</td></tr>`; }).join("")
+  return `<table><thead><tr><th>#</th><th>名称</th><th>赛</th><th>胜</th><th>平</th><th>负</th><th>进球</th><th>净胜</th><th>积分</th></tr></thead><tbody>${
+    st.map((r,i)=>{ const gd=r.gf-r.ga; return `<tr class="${i<advCount?"adv":""}"><td class="pos num">${i+1}</td><td class="nm" title="${esc(r.n)}">${esc(r.n)}</td><td class="num">${r.p}</td><td class="num">${r.w}</td><td class="num">${r.d}</td><td class="num">${r.l}</td><td class="num">${r.gf}</td><td class="num ${gd>0?"gd-pos":gd<0?"gd-neg":""}">${gd>0?"+":""}${gd}</td><td class="pts num">${r.pts}</td></tr>`; }).join("")
   }</tbody></table>`;
 }
 
@@ -686,7 +704,7 @@ function renderGroupPage(){
   $("#groupSub").textContent = g.groups ? `${g.groups.length} 组 · 每组前 2 名晋级淘汰赛` : "";
   document.querySelectorAll("#scoreTabs button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.v === g.scoreMode); b.disabled = !admin; });
   $("#modeHint").textContent = g.scoreMode === "match"
-    ? "胜 3 分、平 1 分、负 0 分；同分看净胜球。第 1、2 名或第 2、3 名积分和净胜球都相同时，加赛一场，再平踢点球。" + (admin ? "填完比分点底部「发布」。" : "")
+    ? "胜 3 分、平 1 分、负 0 分。排名看积分 → 净胜球 → 总进球 → 相互战绩；第 1、2 名或第 2、3 名这些都相同时，加赛一场，再平踢点球。" + (admin ? "填完比分点底部「发布」。" : "")
     : "按总分排名。" + (admin ? "点按钮加减分，改完点底部「发布」。" : "");
   $("#groupTools").hidden = !admin || !g.groups;
   const box = $("#groups");
