@@ -140,8 +140,6 @@ tr.adv td.pos::before,.prow.adv .pos::before{content:"";display:inline-block;wid
 .btie .bl.win .bn{font-weight:800;color:var(--pitch)}
 .btie .bl.lose .bn,.btie .bl.lose .bp{color:var(--ghost)}
 .btie .bcode{position:absolute;top:-8px;left:8px;font-size:10px;background:var(--surface);color:var(--muted);padding:0 4px;border-radius:4px;line-height:14px}
-.bcol:not(:last-child) .btie::after{content:"";position:absolute;right:-14px;top:50%;width:13px;border-top:2px solid var(--line)}
-.bcol:not(:first-child) .btie::before,.bfinal::before{content:"";position:absolute;left:-14px;top:50%;width:13px;border-top:2px solid var(--line)}
 .bfinal{position:relative;border:2px solid var(--gold);border-radius:10px;background:var(--gold-soft);padding:6px 0;cursor:pointer}
 .bfinal .bl{display:flex;gap:6px;padding:4px 10px;font-size:13px}
 .bfinal .champ-line{font-size:12px;font-weight:800;color:var(--gold);padding:4px 10px 0;border-top:1px solid var(--line);margin-top:4px}
@@ -231,7 +229,7 @@ textarea.out{min-height:120px}
             <span class="lbl">分几组</span>
             <div class="seg" id="groupSeg"></div>
             <p class="hint" id="perGroup"></p>
-            <p class="hint">完全随机分组。每组前 2 名晋级淘汰赛，对阵按 2022 世界杯规则（A1 对 B2、B1 对 A2…）。</p>
+            <p class="hint">完全随机分组。每组前 2 名晋级；16强抽签，小组第一抽其他组的小组第二。</p>
           </div>
           <div class="row">
             <button class="primary" type="button" id="drawBtn">一键抽签分组</button>
@@ -279,7 +277,7 @@ textarea.out{min-height:120px}
       </div>
     </div>
     <div class="row" id="groupTools" hidden>
-      <button type="button" class="primary" id="promoOpen">确认晋级 → 填入淘汰赛</button>
+      <button type="button" class="primary" id="promoOpen">确认出线 → 抽签生成16强</button>
       <button type="button" class="danger" id="groupReset">清零小组赛比分</button>
       <button type="button" class="danger" id="restartBtn">全部重新开始</button>
     </div>
@@ -290,7 +288,7 @@ textarea.out{min-height:120px}
       <p class="notice" id="promoWarn" hidden style="margin-top:10px"></p>
       <div class="promo-grid" id="promoGrid"></div>
       <div class="row">
-        <button class="primary" type="button" id="promoGo">确认，填入淘汰赛对阵</button>
+        <button class="primary" type="button" id="promoGo">确认出线，开始抽签</button>
         <button type="button" id="promoCancel">取消</button>
       </div>
     </section>
@@ -301,17 +299,17 @@ textarea.out{min-height:120px}
 
   <!-- ========== 第 2 页：淘汰赛 ========== -->
   <section id="pageKo" style="display:flex;flex-direction:column;gap:14px" hidden>
-    <div class="pagehead"><h2>淘汰赛对阵图</h2><span class="sub">每组两回合，比积分，同分看净胜球；再相同加赛一场，加赛平了踢点球</span></div>
+    <div class="pagehead"><h2>淘汰赛对阵图</h2><span class="sub">每轮抽签决定对阵 · 每组两回合（不分主客场），比积分 → 净胜球 → 加赛（平了踢点球）</span></div>
     <p class="notice" id="koUnsupported" hidden></p>
     <div class="bracket-wrap" id="bracketWrap"><div class="bracket" id="bracket"></div></div>
-    <p class="hint" style="margin:-6px 0 0">点对阵图里的任意一组，可以跳到下面看两回合比分。手机上可以左右滑动对阵图。</p>
+    <p class="hint" style="margin:-6px 0 0">点对阵图里的任意一组，可以跳到下面看两回合比分。每一轮打完后再抽下一轮的对阵。</p>
     <div class="row"><button type="button" data-copy="ko">复制结果文字</button></div>
     <div id="rounds" style="display:flex;flex-direction:column;gap:18px"></div>
   </section>
 
   <!-- ========== 第 3 页：冠军赛 ========== -->
   <section id="pageFinal" style="display:flex;flex-direction:column;gap:14px" hidden>
-    <div class="pagehead"><h2>4强 · 冠军赛</h2><span class="sub">单循环积分赛，每人赛 3 场，积分第一名夺冠；积分和净胜球相同就加赛，再平踢点球</span></div>
+    <div class="pagehead"><h2>4强 · 冠军赛</h2><span class="sub">单循环积分赛，每人赛 3 场。排名看积分 → 净胜球 → 总进球 → 相互战绩，还分不开就加赛（平了踢点球）</span></div>
     <div class="champ" id="champ" hidden><img src="logo.png" alt="" onerror="this.remove()"><div><div class="k">CHAMPION · 冠军</div><div class="v" id="champName"></div></div></div>
     <div class="row"><button type="button" data-copy="final">复制结果文字</button><button type="button" class="danger" id="finalReset" hidden>清零冠军赛比分</button></div>
     <div id="finalBody"></div>
@@ -386,7 +384,13 @@ function normalize(raw){
     const s = Array.isArray(raw.stages) && raw.stages[0] ? raw.stages[0] : raw;
     d.group = { names: s.names || [], groupCount: s.groupCount || 8, scoreMode: s.scoreMode || "match", groups: s.groups || null, matches: s.matches || null, pts: s.pts || null };
   }
-  d.group = Object.assign({ names: [], groupCount: 8, scoreMode: "match", groups: null, matches: null, pts: null, extra: [] }, d.group);
+  d.group = Object.assign({ names: [], groupCount: 8, scoreMode: "match", groups: null, matches: null, pts: null, extra: [], playoffs: [] }, d.group);
+  // 旧版的两人加赛记录转成新格式
+  (d.group.extra || []).forEach((x, gi) => {
+    if (x && x.a && x.b && !d.group.playoffs[gi]) d.group.playoffs[gi] = { names: [x.a, x.b], rounds: [{ names: [x.a, x.b], matches: [{ a: x.a, b: x.b, sa: x.sa || "", sb: x.sb || "", pa: x.pa || "", pb: x.pb || "" }] }], lots: [] };
+  });
+  d.group.extra = [];
+  d.codes = raw.codes || {}; d.qual = raw.qual || null;
   return ensureStructure(d);
 }
 
@@ -426,99 +430,142 @@ function standings(members, matches){
 const L = i => LETTERS[i] || String(i + 1);
 const koName = (d, r) => (G_of(d) * 2 / Math.pow(2, r)) + "强";
 
-/* 小组排名：积分 → 净胜球 → 总进球 → 相互战绩 → 加赛（再平看点球）。
- * 只有影响结果的并列才加赛：第 1、2 名并列（争小组第一）或第 2、3 名并列（争出线）。 */
-function groupInfo(g, gi){
-  const members = g.groups[gi];
-  let rows, key, complete;
-  if (g.scoreMode === "points") {
-    const pts = (g.pts && g.pts[gi]) || [];
-    rows = members.map((n, i) => ({ n, i, v: pts[i] || 0 })).sort((x, y) => y.v - x.v || x.i - y.i);
-    key = r => String(r.v); complete = false; // 直接加分模式不自动加赛，晋级时手动选
-  } else {
-    // 排名：积分 → 净胜球 → 总进球 → 相互战绩（并列者之间的积分、净胜球、进球）→ 加赛/点球
-    rows = standings(members, g.matches[gi]).map(r => Object.assign(r, { i: members.indexOf(r.n), hp: 0, hgd: 0, hgf: 0 }));
-    const base = r => r.pts + "|" + (r.gf - r.ga) + "|" + r.gf;
-    rows.sort((x, y) => y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf || x.i - y.i);
-    for (let s = 0; s < rows.length; ) {
-      let e = s; while (e + 1 < rows.length && base(rows[e + 1]) === base(rows[s])) e++;
-      if (e > s) {
-        const cl = rows.slice(s, e + 1), set = new Set(cl.map(r => r.n)), h = {};
-        cl.forEach(r => h[r.n] = r);
-        g.matches[gi].forEach(m => {
-          if (!done(m) || !set.has(m.a) || !set.has(m.b)) return;
-          const A = h[m.a], B = h[m.b], sa = +m.sa, sb = +m.sb;
-          A.hgf += sa; B.hgf += sb; A.hgd += sa - sb; B.hgd += sb - sa;
-          if (sa > sb) A.hp += 3; else if (sa < sb) B.hp += 3; else { A.hp++; B.hp++; }
-        });
-        cl.sort((x, y) => y.hp - x.hp || y.hgd - x.hgd || y.hgf - x.hgf || x.i - y.i);
-        rows.splice(s, cl.length, ...cl);
-      }
+/* ============ 排名与同分加赛 ============
+ * 排名：积分 → 净胜球 → 总进球 → 相互战绩（同分者之间的积分、净胜球、进球）→ 加赛。
+ * 加赛：两人加赛一场，平了踢点球；三人以上打加赛小循环（两两各一场，平了踢点球），
+ *       按加赛胜场 → 加赛中的积分、净胜球、进球排；还分不开，由管理员选「再加赛一轮」或「抽签决定」。
+ * 加赛和点球只决定先后，不计入任何积分、净胜球、进球统计。 */
+function rankRows(members, matches){
+  const rows = standings(members, matches).map(r => Object.assign(r, { i: members.indexOf(r.n), hp: 0, hgd: 0, hgf: 0 }));
+  const base = r => r.pts + "|" + (r.gf - r.ga) + "|" + r.gf;
+  rows.sort((x, y) => y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf || x.i - y.i);
+  for (let s = 0; s < rows.length; ) {
+    let e = s; while (e + 1 < rows.length && base(rows[e + 1]) === base(rows[s])) e++;
+    if (e > s) {
+      const cl = rows.slice(s, e + 1), set = new Set(cl.map(r => r.n)), h = {};
+      cl.forEach(r => h[r.n] = r);
+      (matches || []).forEach(m => {
+        if (!done(m) || !set.has(m.a) || !set.has(m.b)) return;
+        const A = h[m.a], B = h[m.b], sa = +m.sa, sb = +m.sb;
+        A.hgf += sa; B.hgf += sb; A.hgd += sa - sb; B.hgd += sb - sa;
+        if (sa > sb) A.hp += 3; else if (sa < sb) B.hp += 3; else { A.hp++; B.hp++; }
+      });
+      cl.sort((x, y) => y.hp - x.hp || y.hgd - x.hgd || y.hgf - x.hgf || x.i - y.i);
+      rows.splice(s, cl.length, ...cl);
+    }
+    s = e + 1;
+  }
+  return { rows, key: r => base(r) + "|" + r.hp + "|" + r.hgd + "|" + r.hgf };
+}
+const sameSet = (a, b) => !!a && !!b && a.length === b.length && a.every(x => b.includes(x));
+const filled = v => v !== "" && v != null;
+function poMatches(names){ return makeMatches(names).map(m => Object.assign(m, { pa: "", pb: "" })); }
+function poWinner(m){ // 加赛单场胜者：先看比分，平了看点球
+  if (!done(m)) return null;
+  if (+m.sa !== +m.sb) return +m.sa > +m.sb ? "a" : "b";
+  return filled(m.pa) && filled(m.pb) && +m.pa !== +m.pb ? (+m.pa > +m.pb ? "a" : "b") : null;
+}
+/* 加赛记录 P = { names, rounds:[{ names, matches }], lots:[{ names, order }] } */
+function resolvePlayoff(names, P){
+  P = P && sameSet(P.names, names) ? P : null;
+  const rounds = P ? P.rounds : [], lots = P ? (P.lots || []) : [];
+  const rec = (set, from) => {
+    const ri = rounds.findIndex((r, i) => i >= from && sameSet(r.names, set));
+    if (ri < 0) {
+      const lot = lots.find(l => sameSet(l.names, set));
+      if (lot && from > 0) return { order: lot.order.slice(), lot: true };
+      return { order: null, need: { type: from === 0 ? "play" : "decide", set } };
+    }
+    const R = rounds[ri];
+    if (!R.matches.every(m => poWinner(m))) return { order: null, need: { type: "play", set } };
+    const st = {}; set.forEach((n, i) => st[n] = { n, w: 0, p: 0, gd: 0, gf: 0, i });
+    R.matches.forEach(m => {
+      const A = st[m.a], B = st[m.b], sa = +m.sa, sb = +m.sb;
+      (poWinner(m) === "a" ? A : B).w++;
+      A.gf += sa; B.gf += sb; A.gd += sa - sb; B.gd += sb - sa;
+      if (sa > sb) A.p += 3; else if (sa < sb) B.p += 3; else { A.p++; B.p++; }
+    });
+    const arr = Object.values(st).sort((x, y) => y.w - x.w || y.p - x.p || y.gd - x.gd || y.gf - x.gf || x.i - y.i);
+    const k = r => [r.w, r.p, r.gd, r.gf].join("|");
+    const order = []; let lot = false;
+    for (let s = 0; s < arr.length; ) {
+      let e = s; while (e + 1 < arr.length && k(arr[e + 1]) === k(arr[s])) e++;
+      const cl = arr.slice(s, e + 1).map(r => r.n);
+      if (cl.length === 1) order.push(cl[0]);
+      else if (cl.length === 2) { const m = R.matches.find(x => sameSet([x.a, x.b], cl)); order.push(...(poWinner(m) === "a" ? [m.a, m.b] : [m.b, m.a])); }
+      else { const sub = rec(cl, ri + 1); if (!sub.order) return sub; if (sub.lot) lot = true; order.push(...sub.order); }
       s = e + 1;
     }
-    key = r => base(r) + "|" + r.hp + "|" + r.hgd + "|" + r.hgf;
-    complete = g.matches[gi].every(done);
+    return { order, lot };
+  };
+  return rec(names, 0);
+}
+// 找出卡在关键名次上的同分（bounds：哪些相邻名次之间需要分出先后）
+function findTie(rows, key, bounds){
+  for (const b of bounds) {
+    if (b >= rows.length || key(rows[b - 1]) !== key(rows[b])) continue;
+    const k = key(rows[b]); let s = b - 1, e = b;
+    while (s > 0 && key(rows[s - 1]) === k) s--;
+    while (e < rows.length - 1 && key(rows[e + 1]) === k) e++;
+    return { start: s, end: e, names: rows.slice(s, e + 1).map(r => r.n) };
   }
-  let playoff = null, manual = null;
-  if (complete) {
-    for (const bnd of [1, 2]) {
-      if (bnd >= rows.length || key(rows[bnd - 1]) !== key(rows[bnd])) continue;
-      const k = key(rows[bnd]); let st = bnd - 1, en = bnd;
-      while (st > 0 && key(rows[st - 1]) === k) st--;
-      while (en < rows.length - 1 && key(rows[en + 1]) === k) en++;
-      const names = rows.slice(st, en + 1).map(r => r.n);
-      if (names.length === 2) playoff = { a: names[0], b: names[1], start: st, what: st === 0 ? "争小组第一" : "争小组出线" };
-      else manual = { names, what: st === 0 ? "争小组第一和出线" : "争小组出线" };
-      break;
-    }
+  return null;
+}
+function applyTie(rows, key, bounds, P){
+  const tie = findTie(rows, key, bounds);
+  if (!tie) return { rows, tie: null, res: null, P: null };
+  const res = resolvePlayoff(tie.names, P);
+  if (res.order) { const map = {}; rows.forEach(r => map[r.n] = r); rows.splice(tie.start, tie.names.length, ...res.order.map(n => map[n])); }
+  return { rows, tie, res, P: P && sameSet(P.names, tie.names) ? P : null };
+}
+
+/* 小组：第 1、2 名（争小组第一）和第 2、3 名（争出线）同分时加赛 */
+function groupInfo(g, gi){
+  const members = g.groups[gi];
+  if (g.scoreMode === "points") {
+    const pts = (g.pts && g.pts[gi]) || [];
+    return { rows: members.map((n, i) => ({ n, i, v: pts[i] || 0 })).sort((x, y) => y.v - x.v || x.i - y.i), tie: null };
   }
-  let x = null, res = extraResult(null);
-  if (playoff) {
-    const e = g.extra && g.extra[gi];
-    x = e && e.a === playoff.a && e.b === playoff.b ? e : null;
-    res = extraResult(x);
-    if (res.side === "b") { const i = playoff.start; [rows[i], rows[i + 1]] = [rows[i + 1], rows[i]]; }
-  }
-  return { rows, playoff, x, res, manual };
+  const { rows, key } = rankRows(members, g.matches[gi]);
+  if (!g.matches[gi].every(done)) return { rows, tie: null };
+  const info = applyTie(rows, key, [1, 2], (g.playoffs || [])[gi]);
+  if (info.tie) info.what = info.tie.start === 0 ? (info.tie.end >= 2 ? "争小组第一和出线" : "争小组第一") : "争小组出线";
+  return info;
 }
 function groupRank(g, gi){ return groupInfo(g, gi).rows.map(r => r.n); }
-function groupExtraHTML(g, gi, info){
-  if (info.playoff) {
-    const P = info.playoff;
-    let h = `<span class="res tied">${esc(P.a)} 和 ${esc(P.b)} 积分、净胜球、进球、相互战绩都相同（${P.what}），加赛一场，再平踢点球</span>`;
-    h += `<div class="matches" style="border-top:0;padding:4px 0 0">${extraRows(P.a, P.b, info.x, `gx-${gi}`, `data-k="gx" data-g="${gi}"`)}</div>`;
-    h += info.res.side ? `<span class="res win">${esc(info.res.side === "a" ? P.a : P.b)} 胜出（${esc(extraText(info.x))}）</span>` : `<span class="hint" style="margin:0">${info.res.needPens ? "加赛打平，请填写点球比分" : "请填写加赛比分"}</span>`;
-    return `<div class="agg">${h}</div>`;
-  }
-  if (info.manual) return `<div class="agg"><span class="res tied">${info.manual.names.map(esc).join("、")} 积分、净胜球、进球、相互战绩都相同（${info.manual.what}）。${info.manual.names.length} 人并列没法一场加赛决出，请自行加赛，然后在「确认晋级」时手动选名次。</span></div>`;
-  return "";
-}
-function groupPending(g){ // 还需要加赛或手动排名的组
+function groupExtraHTML(g, gi, info){ return playoffHTML(info, "g", gi, info.what); }
+function groupPending(g){
   if (!g.groups) return [];
-  return g.groups.map((_, gi) => { const f = groupInfo(g, gi); return (f.playoff && !f.res.side) || f.manual ? L(gi) + "组" : null; }).filter(Boolean);
+  return g.groups.map((_, gi) => { const f = groupInfo(g, gi); return f.tie && !f.res.order ? L(gi) + "组" : null; }).filter(Boolean);
 }
 function groupUnfinished(g){ return g.scoreMode === "match" && g.matches ? g.matches.reduce((n, x) => n + x.filter(m => !done(m)).length, 0) : 0; }
 
-/* 淘汰赛占位（2022 世界杯对阵）：第一轮 A1-B2、C1-D2…、B1-A2、D1-C2…；之后相邻两组的胜者相遇 */
-function firstRoundSlots(G){
-  const out = [];
-  for (let k = 0; k + 1 < G; k += 2) out.push([L(k) + "1", L(k+1) + "2"]);
-  for (let k = 0; k + 1 < G; k += 2) out.push([L(k+1) + "1", L(k) + "2"]);
-  return out;
+/* 淘汰赛：16强抽签（小组第一对其他组的小组第二），之后每轮胜者随机抽签 */
+function slotLabel(d, r, t, side){ return r === 0 ? (side ? "小组第二" : "小组第一") : "待抽签"; }
+function tieCode(d, r, t){ const tie = d.ko[r] && d.ko[r].ties[t]; return tie && tie.la ? `${tie.la} vs ${tie.lb}` : (r === 0 ? "待抽签" : "待抽签"); }
+function finalSlotLabel(d, i){ return d.ko.length ? koName(d, d.ko.length - 1) + "胜者" : "小组前二"; }
+// 小组第一随机配其他组的小组第二（同组不相遇）
+function crossDraw(W, R){
+  const G = W.length, idx = [...Array(G).keys()];
+  for (let t = 0; t < 2000; t++) {
+    const p = shuffle(idx);
+    if (G < 2 || p.every((r, i) => r !== i)) return shuffle(W.map((w, i) => [w, R[p[i]]]));
+  }
+  return W.map((w, i) => [w, R[(i + 1) % G]]);
 }
-function tieCode(d, r, t){ return r === 0 ? firstRoundSlots(G_of(d))[t].join("/") : koName(d, r) + "第" + (t + 1) + "组"; }
-function slotLabel(d, r, t, side){ return r === 0 ? firstRoundSlots(G_of(d))[t][side] : tieCode(d, r - 1, 2 * t + side) + " 胜者"; }
-function finalSlotLabel(d, i){ return d.ko.length ? tieCode(d, d.ko.length - 1, i) + " 胜者" : ["A1", "B2", "B1", "A2"][i]; }
-
-/* 两回合合计：比积分，同分看净胜球；再相同需要管理员判定 */
+function randomPairs(names){ const a = shuffle(names), out = []; for (let i = 0; i < a.length; i += 2) out.push([a[i], a[i + 1]]); return out; }
+function setTies(rd, pairs, codes){
+  rd.ties = pairs.map(([a, b]) => Object.assign(newTie(), { a, b, same: true, la: codes[a] || "", lb: codes[b] || "" }));
+}
+/* 两回合合计：积分 → 净胜球 → 加赛（平了踢点球）。不分主客场 */
 function tieResult(tie){
   const r = { pa: 0, pb: 0, ga: 0, gb: 0, played: 0, winner: null, tied: false };
   if (!tie.a || !tie.b) return r;
   tie.legs.forEach((lg, i) => {
     if (!done(lg)) return;
     r.played++;
-    const home = +lg.sa, away = +lg.sb;
-    const ag = i === 0 ? home : away, bg = i === 0 ? away : home;
+    const flip = !tie.same && i === 1; // 旧数据第 2 回合是 b 在前
+    const ag = flip ? +lg.sb : +lg.sa, bg = flip ? +lg.sa : +lg.sb;
     r.ga += ag; r.gb += bg;
     if (ag > bg) r.pa += 3; else if (ag < bg) r.pb += 3; else { r.pa++; r.pb++; }
   });
@@ -526,30 +573,32 @@ function tieResult(tie){
     if (r.pa !== r.pb) r.winner = r.pa > r.pb ? tie.a : tie.b;
     else if (r.ga !== r.gb) r.winner = r.ga > r.gb ? tie.a : tie.b;
     else {
-      r.tied = true;                      // 积分、净胜球都相同 → 加赛一场，再平看点球
+      r.tied = true;
       const x = extraResult(tie.extra);
       r.extra = x;
       if (x.side) r.winner = x.side === "a" ? tie.a : tie.b;
-      else if (tie.pick === "a") r.winner = tie.a; else if (tie.pick === "b") r.winner = tie.b; // 兼容旧数据
+      else if (tie.pick === "a") r.winner = tie.a; else if (tie.pick === "b") r.winner = tie.b;
     }
   }
   return r;
 }
-/* 冠军赛 */
+function roundHasScores(rd){ return rd.ties.some(t => t.legs.some(lg => filled(lg.sa) || filled(lg.sb)) || (t.extra && (filled(t.extra.sa) || filled(t.extra.sb)))); }
+
+/* 冠军赛：积分 → 净胜球 → 总进球 → 相互战绩 → 加赛，只决出冠军 */
 function finalReady(f){ return f.names.every(Boolean) && !!f.matches; }
-function finalStandings(f){ return standings(f.names, f.matches); }
-function finalTiedTop(f){
-  if (!finalReady(f) || !f.matches.every(done)) return [];
-  const st = finalStandings(f), top = st[0];
-  const same = st.filter(r => r.pts === top.pts && (r.gf-r.ga) === (top.gf-top.ga));
-  return same.length > 1 ? same.map(r => r.n).sort((x, y) => f.names.indexOf(x) - f.names.indexOf(y)) : [];
+function finalInfo(f){
+  const { rows, key } = rankRows(f.names, f.matches);
+  if (!f.matches.every(done)) return { rows, tie: null, complete: false };
+  const info = applyTie(rows, key, [1], f.playoff);
+  info.complete = true;
+  return info;
 }
+function finalStandings(f){ return finalInfo(f).rows; }
 function champion(f){
-  if (!finalReady(f) || !f.matches.every(done)) return null;
-  const tied = finalTiedTop(f);
-  if (!tied.length) return finalStandings(f)[0].n;
-  if (tied.length === 2) { const x = extraResult(f.extra); if (x.side) return x.side === "a" ? tied[0] : tied[1]; }
-  return f.pick && tied.includes(f.pick) ? f.pick : null;
+  if (!finalReady(f)) return null;
+  const info = finalInfo(f);
+  if (!info.complete || (info.tie && !info.res.order)) return null;
+  return info.rows[0].n;
 }
 
 function autoPage(d){
@@ -631,11 +680,38 @@ function scoreInputs(id, sa, sb, attrs, aName, bName, fa, fb){
 // 加赛 + 点球的输入行（淘汰赛和冠军赛共用）
 function extraRows(A, B, x, idp, attrs){
   x = x || newExtra();
-  let h = matchRow({ a: A, b: B, sa: x.sa, sb: x.sb }, admin ? scoreInputs(idp + "-x", x.sa, x.sb, attrs, A, B) : "", "加赛一场（中立场）");
+  let h = matchRow({ a: A, b: B, sa: x.sa, sb: x.sb }, admin ? scoreInputs(idp + "-x", x.sa, x.sb, attrs, A, B) : "", "加赛一场");
   if (done(x) && +x.sa === +x.sb) h += matchRow({ a: A, b: B, sa: x.pa, sb: x.pb }, admin ? scoreInputs(idp + "-p", x.pa, x.pb, attrs, A, B, "pa", "pb") : "", "加赛打平 · 点球大战");
   return h;
 }
 function extraText(x){ x = x || {}; if (!done(x)) return ""; return `加赛 ${x.sa}:${x.sb}` + (+x.sa === +x.sb && x.pa !== "" && x.pb !== "" ? `，点球 ${x.pa}:${x.pb}` : ""); }
+function poRows(m, idp, attrs, label){
+  let h = matchRow(m, admin ? scoreInputs(idp + "-x", m.sa, m.sb, attrs, m.a, m.b) : "", label);
+  if (done(m) && +m.sa === +m.sb) h += matchRow({ a: m.a, b: m.b, sa: m.pa, sb: m.pb }, admin ? scoreInputs(idp + "-p", m.pa, m.pb, attrs, m.a, m.b, "pa", "pb") : "", "打平 · 点球");
+  return h;
+}
+// 同分加赛区块（小组赛 scope="g"，冠军赛 scope="f"）
+function playoffHTML(info, scope, gi, what){
+  const t = info && info.tie; if (!t) return "";
+  const P = info.P || { names: t.names, rounds: [], lots: [] };
+  const rounds = P.rounds.length ? P.rounds : [{ names: t.names, matches: poMatches(t.names) }];
+  const two = t.names.length === 2;
+  let h = `<span class="res tied">${t.names.map(esc).join(two ? " 和 " : "、")} 积分、净胜球、进球、相互战绩都相同（${esc(what)}）。${two ? "加赛一场，平了踢点球。" : "打加赛小循环：两两各加赛一场，平了踢点球，按加赛成绩排名。"}</span>`;
+  rounds.forEach((R, ri) => {
+    const title = rounds.length > 1 || ri > 0 ? `<div class="mtitle">第 ${ri + 1} 轮加赛 · ${R.names.map(esc).join("、")}</div>` : "";
+    h += `<div class="matches" style="border-top:0;padding:4px 0 0">${title}${R.matches.map((m, mi) =>
+      poRows(m, `po-${scope}-${gi}-${ri}-${mi}`, `data-k="po" data-sc="${scope}" data-g="${gi}" data-ri="${ri}" data-mi="${mi}"`, two && ri === 0 ? "加赛一场" : "")).join("")}</div>`;
+  });
+  (P.lots || []).forEach(l => { h += `<span class="hint" style="margin:0">抽签结果：${l.order.map(esc).join(" > ")}</span>`; });
+  const res = info.res;
+  if (res.order) h += `<span class="res win">加赛结果：${res.order.map(esc).join(" > ")}${res.lot ? "（含抽签）" : ""}</span>`;
+  else if (res.need.type === "play") h += `<span class="hint" style="margin:0">请填写加赛比分，打平的要填点球</span>`;
+  else {
+    h += `<span class="res tied">加赛后 ${res.need.set.map(esc).join("、")} 仍然分不出先后，可以再加赛一轮，或者抽签决定</span>`;
+    h += admin ? `<div class="row"><button type="button" data-po="again" data-sc="${scope}" data-g="${gi}">再加赛一轮</button><button type="button" data-po="lot" data-sc="${scope}" data-g="${gi}">抽签决定</button></div>` : `<span class="hint" style="margin:0">等待组织者安排</span>`;
+  }
+  return `<div class="agg">${h}</div>`;
+}
 function scoreText(m){ const ok = done(m); return `<span class="sc"><span class="score-t num">${ok ? esc(m.sa) : "-"}</span><span class="colon">:</span><span class="score-t num">${ok ? esc(m.sb) : "-"}</span></span>`; }
 function matchRow(m, inputs, legLabel){
   const ok = done(m);
@@ -690,7 +766,7 @@ $("#drawBtn").onclick = () => {
   shuffle(names).forEach((n, i) => g.groups[i % G].push(n));
   g.matches = g.groups.map(makeMatches);
   g.pts = g.groups.map(x => x.map(() => 0));
-  g.extra = [];
+  g.extra = []; g.playoffs = [];
   draft.ko = []; draft.final = newFinal(); ensureStructure(draft);
   page = "group"; $("#promoBox").hidden = true;
   renderAll(); markChanged();
@@ -704,7 +780,7 @@ function renderGroupPage(){
   $("#groupSub").textContent = g.groups ? `${g.groups.length} 组 · 每组前 2 名晋级淘汰赛` : "";
   document.querySelectorAll("#scoreTabs button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.v === g.scoreMode); b.disabled = !admin; });
   $("#modeHint").textContent = g.scoreMode === "match"
-    ? "胜 3 分、平 1 分、负 0 分。排名看积分 → 净胜球 → 总进球 → 相互战绩；第 1、2 名或第 2、3 名这些都相同时，加赛一场，再平踢点球。" + (admin ? "填完比分点底部「发布」。" : "")
+    ? "胜 3 分、平 1 分、负 0 分。排名看积分 → 净胜球 → 总进球 → 相互战绩；第 1、2 名或第 2、3 名还分不开就加赛（平了踢点球）。" + (admin ? "填完比分点底部「发布」。" : "")
     : "按总分排名。" + (admin ? "点按钮加减分，改完点底部「发布」。" : "");
   $("#groupTools").hidden = !admin || !g.groups;
   const box = $("#groups");
@@ -738,12 +814,12 @@ $("#groupReset").onclick = () => {
   if (!confirm("小组分组不变，所有小组赛比分和积分归零，确定吗？（淘汰赛不受影响）")) return;
   draft.group.matches.forEach(g => g.forEach(m => { m.sa = ""; m.sb = ""; }));
   draft.group.pts = draft.group.groups.map(g => g.map(() => 0));
-  draft.group.extra = [];
+  draft.group.extra = []; draft.group.playoffs = [];
   renderAll(); markChanged(); toast("已清零，点「发布」后生效");
 };
 $("#restartBtn").onclick = () => {
   if (!confirm("全部重新开始？\n\n小组赛、淘汰赛、冠军赛的分组和比分都会清空。参赛名单保留，你重新抽签就行。")) return;
-  Object.assign(draft.group, { groups: null, matches: null, pts: null, extra: [] });
+  Object.assign(draft.group, { groups: null, matches: null, pts: null, extra: [], playoffs: [] });
   draft.ko = []; draft.final = newFinal(); ensureStructure(draft);
   page = "group"; $("#promoBox").hidden = true;
   renderAll(); markChanged();
@@ -763,7 +839,7 @@ $("#promoOpen").onclick = () => {
     }</select></div>`).join("");
   }).join("");
   const left = groupUnfinished(g);
-  $("#promoIntro").textContent = "已按当前排名自动选好各组第一、第二。遇到同分等需要调整时，直接改下拉框。确认后按世界杯规则填进淘汰赛对阵图（A1 对 B2、B1 对 A2…）。";
+  $("#promoIntro").textContent = "已按当前排名（含加赛结果）自动选好各组第一、第二，一般不用改。确认后网页自动抽签：每个小组第一随机抽一个其他组的小组第二。";
   const pend = groupPending(g);
   const w = (left ? `小组赛还有 ${left} 场没填比分，排名可能还会变。` : "") + (pend.length ? `${pend.join("、")}有同分还没加赛决出，请先填加赛比分，或在下面手动选好名次。` : "") + (koHasData(draft) ? "淘汰赛已经填过，确认后会重新填入，淘汰赛和冠军赛的比分会清空。" : "");
   $("#promoWarn").hidden = !w; $("#promoWarn").textContent = w;
@@ -778,10 +854,13 @@ $("#promoGo").onclick = () => {
     if (a === b) return toast(`${L(gi)}组的第一和第二选了同一个人，请改一下`);
     pos[L(gi) + "1"] = a; pos[L(gi) + "2"] = b;
   }
-  if (koHasData(draft) && !confirm("淘汰赛和冠军赛会重新填入，已有比分会清空。确定吗？")) return;
+  if (koHasData(draft) && !confirm("淘汰赛已经抽过签，确认后会重新抽签，淘汰赛和冠军赛的比分都会清空。确定吗？")) return;
   draft.ko = []; draft.final = newFinal(); ensureStructure(draft);
+  const W = [], R = []; draft.codes = {};
+  for (let gi = 0; gi < G; gi++) { W.push(pos[L(gi) + "1"]); R.push(pos[L(gi) + "2"]); draft.codes[pos[L(gi) + "1"]] = L(gi) + "1"; draft.codes[pos[L(gi) + "2"]] = L(gi) + "2"; }
+  draft.qual = { W, R };
   if (draft.ko.length) {
-    firstRoundSlots(G).forEach((slot, t) => { draft.ko[0].ties[t].a = pos[slot[0]]; draft.ko[0].ties[t].b = pos[slot[1]]; });
+    setTies(draft.ko[0], crossDraw(W, R), draft.codes);
     page = "ko";
   } else { // 只有 2 组：前两名直接进冠军赛
     draft.final.names = ["A1", "B2", "B1", "A2"].map(k => pos[k]);
@@ -791,7 +870,7 @@ $("#promoGo").onclick = () => {
   $("#promoBox").hidden = true;
   renderAll(); markChanged();
   window.scrollTo({ top: 0, behavior: "smooth" });
-  toast("已填入对阵，确认无误后点底部「发布」", 3500);
+  toast("抽签完成！确认无误后点底部「发布」", 3500);
 };
 
 /* ============ 导出 / 导入 ============ */
@@ -872,7 +951,7 @@ $("#importGo").onclick = () => {
     g.groupCount = groups.length;
     g.matches = g.groups.map(makeMatches);
     g.pts = g.groups.map(x => x.map(() => 0));
-    g.extra = [];
+    g.extra = []; g.playoffs = [];
     draft.ko = []; draft.final = newFinal(); ensureStructure(draft);
   }
   pendingImport = null; page = null;
@@ -919,11 +998,12 @@ function renderKoPage(){
       const res = tieResult(tie);
       const A = tie.a || slotLabel(d, r, t, 0), B = tie.b || slotLabel(d, r, t, 1);
       let body;
-      if (!tie.a || !tie.b) body = `<div class="ph-note">等待上一轮晋级后填入：${esc(A)} 对 ${esc(B)}</div>`;
+      if (!tie.a || !tie.b) body = `<div class="ph-note">${r === 0 ? "小组赛结束后抽签：小组第一 对 其他组的小组第二" : "上一轮打完后抽签决定对阵"}</div>`;
       else {
         const legs = tie.legs.map((lg, li) => {
-          const m = { a: li === 0 ? A : B, b: li === 0 ? B : A, sa: lg.sa, sb: lg.sb };
-          return matchRow(m, admin ? scoreInputs(`k-${r}-${t}-${li}`, lg.sa, lg.sb, `data-k="k" data-r="${r}" data-t="${t}" data-l="${li}"`, m.a, m.b) : "", `第 ${li+1} 回合 · ${esc(m.a)} 主场`);
+          const flip = !tie.same && li === 1;
+          const m = { a: flip ? B : A, b: flip ? A : B, sa: lg.sa, sb: lg.sb };
+          return matchRow(m, admin ? scoreInputs(`k-${r}-${t}-${li}`, lg.sa, lg.sb, `data-k="k" data-r="${r}" data-t="${t}" data-l="${li}"`, m.a, m.b) : "", `第 ${li+1} 回合`);
         }).join("");
         let agg;
         if (res.played < 2) agg = `<span class="hint" style="margin:0">两回合合计：${esc(A)} ${res.pa} 分 · ${esc(B)} ${res.pb} 分（已赛 ${res.played}/2）</span>`;
@@ -938,9 +1018,11 @@ function renderKoPage(){
         }
         body = `<div class="matches" style="border-top:0">${legs}</div><div class="agg">${agg}</div>`;
       }
-      return `<article class="tie" id="tie-${r}-${t}"><div class="ghead"><span class="gletter">${t+1}</span><span class="gname">${koName(d, r)} 第${t+1}组</span><span class="gsub">${esc(r === 0 ? tieCode(d, r, t) : slotLabel(d, r, t, 0).replace(" ", "") + " vs " + slotLabel(d, r, t, 1).replace(" ", ""))}</span></div>${body}</article>`;
+      return `<article class="tie" id="tie-${r}-${t}"><div class="ghead"><span class="gletter">${t+1}</span><span class="gname">${koName(d, r)} 第${t+1}组</span><span class="gsub">${esc(tieCode(d, r, t))}</span></div>${body}</article>`;
     }).join("");
-    const btn = admin && filled ? `<div class="row"><button type="button" class="primary" data-advance="${r}" ${allDone ? "" : "disabled"}>确认晋级 → 填入${nextLabel}</button>${allDone ? "" : '<span class="hint" style="margin:0">本轮每组都决出胜者后才能晋级</span>'}<button type="button" class="danger" data-koreset="${r}">清零本轮比分</button></div>` : "";
+    const nextBtn = r + 1 < R ? `抽签 → 生成${nextLabel}` : "确认晋级 → 进入冠军赛";
+    const canRedraw = filled && !roundHasScores(rd) && !laterFilledIn(d, r);
+    const btn = admin && filled ? `<div class="row"><button type="button" class="primary" data-advance="${r}" ${allDone ? "" : "disabled"}>${nextBtn}</button>${allDone ? "" : '<span class="hint" style="margin:0">本轮每组都决出胜者后才能进入下一轮</span>'}${canRedraw ? `<button type="button" data-redraw="${r}">重新抽签</button>` : ""}<button type="button" class="danger" data-koreset="${r}">清零本轮比分</button></div>` : "";
     return `<section class="round"><h3>${koName(d, r)}</h3><div class="ties">${ties}</div>${btn}</section>`;
   }).join("");
 }
@@ -956,7 +1038,9 @@ function clearAfter(r){
   for (let k = r + 1; k < draft.ko.length; k++) draft.ko[k].ties = draft.ko[k].ties.map(newTie);
   draft.final = newFinal();
 }
-function laterFilled(r){ return draft.ko.slice(r + 1).some(x => x.ties.some(t => t.a)) || draft.final.names.some(Boolean); }
+function laterFilledIn(d, r){ return d.ko.slice(r + 1).some(x => x.ties.some(t => t.a)) || d.final.names.some(Boolean); }
+function laterFilled(r){ return laterFilledIn(draft, r); }
+function wasPublished(r){ return !!(data && data.ko[r] && data.ko[r].ties.some(t => t.a)); }
 $("#rounds").addEventListener("click", e => {
   if (!admin) return;
   const pk = e.target.closest("[data-pick]");
@@ -974,8 +1058,8 @@ $("#rounds").addEventListener("click", e => {
     if (laterFilled(r) && !confirm("后面的轮次已经填过，确认后会重新填入，后面的比分会清空。确定吗？")) return;
     clearAfter(r);
     if (r + 1 < draft.ko.length) {
-      draft.ko[r + 1].ties.forEach((t, j) => { t.a = winners[2*j]; t.b = winners[2*j+1]; });
-      toast(`已填入${koName(draft, r + 1)}，确认无误后点底部「发布」`, 3000);
+      setTies(draft.ko[r + 1], randomPairs(winners), draft.codes || {});
+      toast(`${koName(draft, r + 1)}抽签完成！确认无误后点底部「发布」`, 3000);
     } else {
       draft.final.names = winners.slice(0, 4);
       draft.final.matches = makeMatches(draft.final.names);
@@ -984,6 +1068,19 @@ $("#rounds").addEventListener("click", e => {
       toast("已填入冠军赛，确认无误后点底部「发布」", 3000);
     }
     renderAll(); markChanged(); return;
+  }
+  const rd = e.target.closest("[data-redraw]");
+  if (rd) {
+    const r = +rd.dataset.redraw, round = draft.ko[r];
+    if (roundHasScores(round)) return toast("这一轮已经填了比分，不能重新抽签");
+    if (!confirm(wasPublished(r) ? `${koName(draft, r)}的抽签结果已经发布，大家都看到了。确定要重新抽签吗？` : `重新抽${koName(draft, r)}的签？`)) return;
+    if (r === 0) {
+      const q = draft.qual || { W: round.ties.map(t => t.a), R: round.ties.map(t => t.b) };
+      setTies(round, crossDraw(q.W, q.R), draft.codes || {});
+    } else {
+      setTies(round, randomPairs(round.ties.flatMap(t => [t.a, t.b])), draft.codes || {});
+    }
+    renderAll(); markChanged(); toast("已重新抽签，确认后点底部「发布」"); return;
   }
   const rs = e.target.closest("[data-koreset]");
   if (rs) {
@@ -1005,23 +1102,19 @@ function renderFinalPage(){
     box.innerHTML = `<div class="empty">等待淘汰赛结束后填入 4 强：<br>${[0,1,2,3].map(i => esc(finalSlotLabel(d, i))).join("、")}</div>`;
     return;
   }
-  const tiedTop = finalTiedTop(f);
+  const info = finalInfo(f);
   box.innerHTML = `<article class="group"><div class="ghead"><span class="gletter">★</span><span class="gname">4强 · 单循环积分赛</span><span class="gsub">每人赛 3 场</span></div>
-    <div class="tbl-wrap">${tableHTML(f.names, f.matches, 1)}</div>
+    <div class="tbl-wrap">${tableHTML(f.names, f.matches, 1, info.rows)}</div>
     <div class="matches"><div class="mtitle">全部对阵 · 已赛 ${f.matches.filter(done).length}/${f.matches.length}</div>${
       f.matches.map((m, mi) => matchRow(m, admin ? scoreInputs(`f-${mi}`, m.sa, m.sb, `data-k="f" data-m="${mi}"`, m.a, m.b) : "")).join("")
     }</div>
-    ${tiedTop.length === 2 ? `<div class="agg"><span class="res tied">${tiedTop.map(esc).join(" 和 ")} 积分、净胜球都相同，加赛一场决出冠军，再平就踢点球</span>
-      <div class="matches" style="border-top:0;padding:4px 0 0">${extraRows(tiedTop[0], tiedTop[1], f.extra, "fx", 'data-k="fx"')}</div>
-      ${ch ? `<span class="res win">冠军：${esc(ch)}（${esc(extraText(f.extra) || "判定")}）</span>` : `<span class="hint" style="margin:0">${extraResult(f.extra).needPens ? "加赛打平，请填写点球比分" : "请填写加赛比分"}</span>`}</div>` : ""}
-    ${tiedTop.length > 2 ? `<div class="agg"><span class="res tied">${tiedTop.map(esc).join("、")} 积分、净胜球都相同${ch ? "，已判定冠军：" + esc(ch) : "，请加赛后判定冠军"}</span>${
-      admin ? `<div class="row">${tiedTop.map(n => `<button type="button" data-champ="${esc(n)}">判定 ${esc(n)} 夺冠</button>`).join("")}</div>` : ""}</div>` : ""}
+    ${playoffHTML(info, "f", 0, "争冠军")}
   </article>`;
 }
 $("#finalBody").addEventListener("click", e => { const b = e.target.closest("[data-champ]"); if (!b || !admin) return; draft.final.pick = b.dataset.champ; renderAll(); markChanged(); });
 $("#finalReset").onclick = () => {
   if (!confirm("冠军赛比分全部清零，确定吗？")) return;
-  draft.final.matches.forEach(m => { m.sa = ""; m.sb = ""; }); draft.final.extra = newExtra(); draft.final.pick = null;
+  draft.final.matches.forEach(m => { m.sa = ""; m.sb = ""; }); draft.final.extra = newExtra(); draft.final.pick = null; draft.final.playoff = null;
   renderAll(); markChanged();
 };
 
@@ -1048,6 +1141,16 @@ document.addEventListener("input", e => {
     tie.legs[+el.dataset.l][s] = v; tie.pick = null;
     markChanged(); rerenderKeepFocus(renderKoPage, el.id); renderPages(); return;
   }
+  if (k === "po") {
+    const ctx = poCtx(el.dataset.sc, +el.dataset.g); if (!ctx.info.tie) return;
+    const names = ctx.info.tie.names;
+    let P = ctx.getP();
+    if (!P || !sameSet(P.names, names)) P = { names: names.slice(), rounds: [{ names: names.slice(), matches: poMatches(names) }], lots: [] };
+    const m = P.rounds[+el.dataset.ri].matches[+el.dataset.mi];
+    m[s] = v; if ((s === "sa" || s === "sb") && !(done(m) && +m.sa === +m.sb)) { m.pa = ""; m.pb = ""; }
+    ctx.setP(P);
+    markChanged(); rerenderKeepFocus(el.dataset.sc === "g" ? renderGroupPage : renderFinalPage, el.id); renderPages(); return;
+  }
   if (k === "gx") {
     const g = draft.group, gi = +el.dataset.g, P = groupInfo(g, gi).playoff;
     if (!P) return;
@@ -1070,6 +1173,27 @@ document.addEventListener("input", e => {
     markChanged(); rerenderKeepFocus(renderFinalPage, el.id); renderPages();
   }
 });
+function poCtx(sc, gi){
+  if (sc === "g") return { info: groupInfo(draft.group, gi), getP: () => (draft.group.playoffs || [])[gi], setP: P => { draft.group.playoffs = draft.group.playoffs || []; draft.group.playoffs[gi] = P; } };
+  return { info: finalInfo(draft.final), getP: () => draft.final.playoff, setP: P => { draft.final.playoff = P; } };
+}
+// 「再加赛一轮」「抽签决定」
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-po]"); if (!b || !admin) return;
+  const ctx = poCtx(b.dataset.sc, +b.dataset.g), res = ctx.info.res, P = ctx.getP();
+  if (!res || res.order || !res.need || res.need.type !== "decide" || !P) return;
+  const set = res.need.set;
+  if (b.dataset.po === "again") {
+    P.rounds.push({ names: set.slice(), matches: poMatches(set) });
+    toast("已添加新一轮加赛，填完比分后点「发布」");
+  } else {
+    if (!confirm(`由网页随机抽签决定 ${set.join("、")} 的先后？抽签后不能撤回（发布前可以点「撤销修改」）。`)) return;
+    P.lots = P.lots || []; P.lots.push({ names: set.slice(), order: shuffle(set) });
+    toast("抽签完成，确认后点底部「发布」");
+  }
+  ctx.setP(P);
+  renderAll(); markChanged();
+});
 function rerenderKeepFocus(fn, id){
   const pos = document.activeElement && document.activeElement.id === id ? document.activeElement.selectionStart : null;
   fn();
@@ -1088,7 +1212,7 @@ function resultText(which){
       else {
         const info = groupInfo(g, gi);
         info.rows.forEach((r,k) => lines.push(`${k+1}. ${r.n}  ${r.w}胜${r.d}平${r.l}负  ${r.pts}分${k<ADV?" ✓":""}`));
-        if (info.playoff && info.x && extraText(info.x)) lines.push(`加赛：${info.playoff.a} vs ${info.playoff.b}  ${extraText(info.x)}`);
+        if (info.tie && info.res.order) lines.push(`加赛结果：${info.res.order.join(" > ")}${info.res.lot ? "（含抽签）" : ""}`);
       }
     });
   } else if (which === "ko") {
@@ -1099,15 +1223,15 @@ function resultText(which){
         const res = tieResult(t), A = t.a || slotLabel(d, r, i, 0), B = t.b || slotLabel(d, r, i, 1);
         const legs = t.a && t.b ? t.legs.map(lg => done(lg) ? lg.sa + ":" + lg.sb : "-:-").join("，") : "";
         const ex = res.tied ? extraText(t.extra) : "";
-        lines.push(`${i+1}. ${A} vs ${B}${legs ? "  （" + legs + (ex ? "；" + ex : "") + "）" : ""}${res.winner ? "  → " + res.winner + " 晋级" : ""}`);
+        lines.push(`${i+1}. ${t.la ? "[" + t.la + " vs " + t.lb + "] " : ""}${A} vs ${B}${legs ? "  （" + legs + (ex ? "；" + ex : "") + "）" : ""}${res.winner ? "  → " + res.winner + " 晋级" : ""}`);
       });
     });
   } else {
     const f = d.final; if (!finalReady(f)) return "";
     lines.push("", "4强 · 冠军赛");
     finalStandings(f).forEach((r,k) => lines.push(`${k+1}. ${r.n}  ${r.w}胜${r.d}平${r.l}负  ${r.pts}分`));
-    const tt = finalTiedTop(f), ex = tt.length === 2 ? extraText(f.extra) : "";
-    if (ex) lines.push(`加赛：${tt[0]} vs ${tt[1]}  ${ex}`);
+    const fi = finalInfo(f);
+    if (fi.tie && fi.res.order) lines.push(`加赛结果：${fi.res.order.join(" > ")}${fi.res.lot ? "（含抽签）" : ""}`);
     const ch = champion(f); if (ch) lines.push("", "冠军：" + ch);
   }
   lines.push("", location.href.split("?")[0].split("#")[0]);
