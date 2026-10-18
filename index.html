@@ -43,7 +43,7 @@ h1{margin:0;font-size:26px;font-weight:900;letter-spacing:.02em;line-height:1.2;
 .hbtns{display:flex;gap:8px}
 
 /* 三个页面 */
-.pages{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--chip);padding:4px;border-radius:12px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.pages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--chip);padding:4px;border-radius:12px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
 .pages button{border:0;background:transparent;border-radius:9px;padding:8px 4px;line-height:1.25;display:flex;flex-direction:column;align-items:center;gap:1px}
 .pages button b{font-size:15px}
 .pages button small{font-size:11.5px;color:var(--muted)}
@@ -168,6 +168,62 @@ tr.adv td.pos::before,.prow.adv .pos::before{content:"";display:inline-block;wid
 .promo-grid label{font-size:12px;color:var(--muted);font-weight:700}
 .promo-grid select{padding:6px 8px;margin-top:2px}
 
+.rules{display:flex;flex-direction:column;gap:12px}
+.rules h3{margin:0 0 8px;font-size:17px;color:var(--pitch)}
+.rules ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px;line-height:1.7}
+.rules .hint{margin-top:8px}
+.flow{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:12px 10px}
+.flow .step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;padding:8px 2px;border-radius:10px;background:var(--chip)}
+.flow .step b{font-size:16px;color:var(--pitch);white-space:nowrap}
+.flow .step span{font-size:12px;color:var(--muted)}
+.flow .step.gold{background:var(--gold-soft)}
+.flow .step.gold b{color:var(--gold)}
+.flow i{font-style:normal;color:var(--muted)}
+/* 抽签仪式 */
+.cer{position:fixed;inset:0;z-index:30;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(30px + env(safe-area-inset-bottom,0px))}
+.cer-in{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.ctop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ctop h2{margin:0;font-size:21px;font-weight:900}
+.ctag{font-size:12px;background:var(--gold-soft);color:var(--gold);border-radius:999px;padding:2px 9px;vertical-align:middle}
+.cx{border:0;background:var(--chip);width:36px;height:36px;border-radius:50%;padding:0;font-size:16px}
+.cprog{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);margin-bottom:-6px}
+.cbar{height:6px;background:var(--chip);border-radius:9px;overflow:hidden}
+.cbar i{display:block;height:100%;background:var(--gold);transition:width .3s}
+.cstage{background:radial-gradient(circle at 50% 30%,#1E7A55,#0B3826);color:#fff;border-radius:18px;padding:18px 16px;text-align:center;min-height:150px;display:flex;flex-direction:column;justify-content:center}
+.cslot{font-size:13px;opacity:.85;letter-spacing:.08em}
+.cname{font-size:clamp(30px,9vw,42px);font-weight:900;margin:6px 0 4px;color:#FFE29A;text-shadow:0 0 18px rgba(255,226,154,.6);word-break:break-all}
+.cstage.rolling .cname{color:#fff;opacity:.85;text-shadow:none}
+.cinto{display:inline-block;align-self:center;font-size:13px;background:rgba(255,255,255,.14);padding:3px 12px;border-radius:999px}
+.cbtns{display:flex;gap:8px}
+.cbig{flex:1;background:var(--gold);color:#1a1a1a;border:0;border-radius:14px;padding:14px;font-size:18px;font-weight:900}
+.csm{border-radius:12px;padding:0 14px;font-size:13.5px}
+.cnext{font-size:12.5px;color:var(--muted);text-align:center;margin-top:-4px}
+.cpot{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.cpot h4{margin:0 0 8px;font-size:12.5px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:12.5px;background:var(--chip);border-radius:999px;padding:3px 10px}
+.chip small{color:var(--muted);font-size:10.5px}
+.chip.off{opacity:.35;text-decoration:line-through}
+.ctwo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.cg{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cg h5{margin:0;background:var(--pitch);color:#fff;font-size:13px;padding:5px 10px}
+.cg div{font-size:13px;padding:4px 10px;border-top:1px solid var(--line);display:flex;gap:6px;min-height:27px;align-items:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cg div em{font-style:normal;color:var(--ghost);font-size:11px;width:14px;flex:none}
+.cg div.ph{color:var(--ghost)}
+.cg div.cur{background:var(--gold-soft);box-shadow:inset 0 0 0 2px var(--gold);color:var(--gold);font-weight:700}
+.cg div.new{font-weight:800;color:var(--pitch);background:var(--chip);animation:cpop .5s ease-out}
+@keyframes cpop{from{transform:scale(1.06)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){.cg div.new{animation:none}}
+.cties{display:flex;flex-direction:column;gap:7px}
+.ctie{display:grid;grid-template-columns:26px 1fr 26px 1fr;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:7px 10px;font-size:14px}
+.ctie b{color:var(--muted);font-size:12px}
+.ctie .vs{color:var(--muted);text-align:center;font-size:11px}
+.ctie span small{display:block;font-size:10.5px;color:var(--muted)}
+.ctie .ph{color:var(--ghost)}
+.ctie .qm{color:var(--gold);font-weight:900;font-size:17px}
+.ctie.cur{box-shadow:0 0 0 2px var(--gold);background:var(--gold-soft)}
+.btn-replay{padding:4px 12px;font-size:13px}
 .abar{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:var(--bg);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;z-index:10}
 .abar .st{font-size:14px}
 .abar .st b{color:var(--gold)}
@@ -208,6 +264,7 @@ textarea.out{min-height:120px}
     <button type="button" data-p="group"><b id="pgGroupName">小组赛</b><small id="pgGroupSub">小组赛</small></button>
     <button type="button" data-p="ko"><b>淘汰赛</b><small id="pgKoSub">对阵图</small></button>
     <button type="button" data-p="final"><b>冠军赛</b><small id="pgFinalSub">4强循环赛</small></button>
+    <button type="button" data-p="rules"><b>规则</b><small>赛制说明</small></button>
   </nav>
 
   <!-- ========== 第 1 页：小组赛 ========== -->
@@ -232,7 +289,7 @@ textarea.out{min-height:120px}
             <p class="hint">完全随机分组。每组前 2 名晋级；16强抽签，小组第一抽其他组的小组第二。</p>
           </div>
           <div class="row">
-            <button class="primary" type="button" id="drawBtn">一键抽签分组</button>
+            <button class="primary" type="button" id="drawBtn">开始分组抽签</button>
           </div>
           <p class="hint" id="drawWarn" hidden>已经抽过签了。重新抽签会清空小组赛比分，也会清空淘汰赛和冠军赛。</p>
         </div>
@@ -273,6 +330,7 @@ textarea.out{min-height:120px}
       </div>
       <div class="row">
         <span class="legend"><i></i>每组前 2 名晋级</span>
+        <button type="button" data-replay="group" id="replayGroup" hidden>回放抽签</button>
         <button type="button" data-copy="group">复制结果文字</button>
       </div>
     </div>
@@ -315,6 +373,78 @@ textarea.out{min-height:120px}
     <div id="finalBody"></div>
   </section>
 
+  <!-- ========== 第 4 页：规则 ========== -->
+  <section id="pageRules" class="rules" hidden>
+    <div class="pagehead"><h2>赛制规则</h2><span class="sub">32 人 · 小组赛 → 16强 → 8强 → 4强冠军赛</span></div>
+
+    <div class="card flow">
+      <div class="step"><b>32强</b><span>小组赛</span></div><i>→</i>
+      <div class="step"><b>16强</b><span>两回合</span></div><i>→</i>
+      <div class="step"><b>8强</b><span>两回合</span></div><i>→</i>
+      <div class="step gold"><b>4强</b><span>冠军赛</span></div>
+    </div>
+
+    <article class="card">
+      <h3>一、32强 · 小组赛</h3>
+      <ol>
+        <li><b>分组</b>：32 人完全随机抽签，分成 A–H 共 8 组，每组 4 人。</li>
+        <li><b>赛制</b>：组内单循环，每人打 3 场，每组 6 场，共 48 场。</li>
+        <li><b>积分</b>：胜 3 分，平 1 分，负 0 分。</li>
+        <li><b>排名</b>：积分 → 净胜球 → 总进球数 → 相互战绩（只算同分的人之间那几场的积分、净胜球、进球）→ 加赛。</li>
+        <li><b>晋级</b>：每组前 2 名，共 16 人进入 16强。</li>
+      </ol>
+      <p class="hint">只有第 1、2 名（争小组第一）或第 2、3 名（争出线）之间分不开才加赛，第 3、4 名同分不加赛。</p>
+    </article>
+
+    <article class="card">
+      <h3>二、16强 · 两回合淘汰</h3>
+      <ol>
+        <li><b>抽签</b>：每个小组第一随机抽一个<b>其他组</b>的小组第二作对手，同组不相遇。</li>
+        <li><b>赛制</b>：每组打两回合，不分主客场。</li>
+        <li><b>晋级</b>：两回合积分合计（每场胜 3 平 1 负 0）→ 两回合净胜球合计 → 加赛一场 → 加赛平了踢点球。不算客场进球。</li>
+      </ol>
+    </article>
+
+    <article class="card">
+      <h3>三、8强 · 两回合淘汰</h3>
+      <ol>
+        <li><b>抽签</b>：16强的 8 个胜者完全随机两两配对，不做同组回避。</li>
+        <li><b>赛制和晋级</b>：和 16强一样。</li>
+      </ol>
+    </article>
+
+    <article class="card">
+      <h3>四、4强 · 冠军赛</h3>
+      <ol>
+        <li><b>赛制</b>：4 人单循环，每人 3 场，共 6 场。</li>
+        <li><b>排名</b>：积分 → 净胜球 → 总进球数 → 相互战绩 → 加赛。</li>
+        <li><b>第 1 名是冠军</b>，只决出冠军，不排亚军、季军。</li>
+      </ol>
+    </article>
+
+    <article class="card">
+      <h3>五、加赛和点球</h3>
+      <ol>
+        <li><b>两人同分</b>：加赛一场，平了踢点球（各罚 5 个，还平就一人一个轮流罚到分出胜负）。</li>
+        <li><b>三人以上同分</b>：打加赛小循环，两两各加赛一场，平了踢点球。先比加赛胜场，再比加赛的积分、净胜球、进球。</li>
+        <li><b>还分不开</b>：可以再加赛一轮，直到大家同意改为抽签决定。</li>
+        <li><b>加赛和点球只决定先后</b>，不计入任何积分、净胜球、进球统计。</li>
+      </ol>
+    </article>
+
+    <article class="card">
+      <h3>六、抽签</h3>
+      <ol>
+        <li>所有抽签都由网页随机完成，组织者一签一签地抽，结果当场显示。</li>
+        <li><b>小组分组</b>：按 A 组 1 号位 → B 组 1 号位 → … → H 组 1 号位 → A 组 2 号位 … 的顺序依次填入。</li>
+        <li><b>16强</b>：先抽一个小组第一，再给他抽一个其他组的小组第二。</li>
+        <li><b>8强</b>：按第 1 组左边、第 1 组右边、第 2 组左边……的顺序依次填入。</li>
+        <li>抽完后，大家可以在网页上点「回放抽签」，一签一签地看当时的抽签过程。</li>
+        <li>某一轮还没开始填比分时，组织者可以重新抽签；一旦开始比赛就不再重抽。</li>
+      </ol>
+    </article>
+  </section>
+
   <textarea class="out" id="outText" hidden readonly aria-label="结果文字"></textarea>
 </div>
 
@@ -324,6 +454,7 @@ textarea.out{min-height:120px}
   <button type="button" id="discardBtn">撤销修改</button>
   <button type="button" id="logoutBtn">退出管理</button>
 </div>
+<div class="cer" id="cer" hidden><div class="cer-in" id="cerBody"></div></div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -391,6 +522,7 @@ function normalize(raw){
   });
   d.group.extra = [];
   d.codes = raw.codes || {}; d.qual = raw.qual || null;
+  d.drawLog = raw.drawLog || { group: null, ko: {} };
   return ensureStructure(d);
 }
 
@@ -663,6 +795,7 @@ function renderPages(){
   $("#pageGroup").hidden = cur !== "group";
   $("#pageKo").hidden = cur !== "ko";
   $("#pageFinal").hidden = cur !== "final";
+  $("#pageRules").hidden = cur !== "rules";
 }
 $("#pages").onclick = e => { const b = e.target.closest("button"); if (!b) return; page = b.dataset.p; renderAll(); };
 
@@ -742,7 +875,7 @@ function renderSetup(){
   if (document.activeElement !== $("#namesIn")) $("#namesIn").value = (g.names || []).join("\n");
   $("#groupSeg").innerHTML = SEG.map(v => `<button type="button" data-v="${v}" aria-pressed="${g.groupCount===v}">${v} 组</button>`).join("");
   $("#drawWarn").hidden = !g.groups;
-  $("#drawBtn").textContent = g.groups ? "重新抽签" : "一键抽签分组";
+  $("#drawBtn").textContent = g.groups ? "重新分组抽签" : "开始分组抽签";
   refreshCount();
 }
 function refreshCount(){
@@ -761,18 +894,23 @@ $("#drawBtn").onclick = () => {
   if (names.length < 4) return toast("请先填入至少 4 个名字");
   if (G * 2 > names.length) return toast("人数太少：每组至少要 2 人，请减少组数");
   if (g.groups && !confirm(koHasData(draft) ? "重新抽签会清空小组赛比分，淘汰赛和冠军赛也会一起清空。确定吗？" : "重新抽签会清空小组赛所有比分，确定吗？")) return;
-  g.names = names;
-  g.groups = Array.from({length: G}, () => []);
-  shuffle(names).forEach((n, i) => g.groups[i % G].push(n));
-  g.matches = g.groups.map(makeMatches);
-  g.pts = g.groups.map(x => x.map(() => 0));
-  g.extra = []; g.playoffs = [];
-  draft.ko = []; draft.final = newFinal(); ensureStructure(draft);
-  page = "group"; $("#promoBox").hidden = true;
-  renderAll(); markChanged();
-  $("#setupBox").open = false;
-  toast(`已随机分成 ${G} 组，确认无误后点底部「发布」`, 3000);
+  openCeremony({ mode: "group", title: groupTotalOf(names.length) + " · 分组抽签", G, names: names.slice(), onCommit: (groups, log) => {
+    const g = draft.group;
+    g.names = names; g.groupCount = G;
+    g.groups = groups;
+    g.matches = g.groups.map(makeMatches);
+    g.pts = g.groups.map(x => x.map(() => 0));
+    g.extra = []; g.playoffs = [];
+    draft.ko = []; draft.final = newFinal(); ensureStructure(draft);
+    setDrawLog("group", { G, seq: log });
+    page = "group"; $("#promoBox").hidden = true;
+    renderAll(); markChanged();
+    $("#setupBox").open = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    toast(`分组抽签完成！确认无误后点底部「发布」`, 3000);
+  } });
 };
+function groupTotalOf(n){ return n + "强"; }
 
 function renderGroupPage(){
   const d = view(), g = d.group, total = groupTotal(g);
@@ -783,8 +921,9 @@ function renderGroupPage(){
     ? "胜 3 分、平 1 分、负 0 分。排名看积分 → 净胜球 → 总进球 → 相互战绩；第 1、2 名或第 2、3 名还分不开就加赛（平了踢点球）。" + (admin ? "填完比分点底部「发布」。" : "")
     : "按总分排名。" + (admin ? "点按钮加减分，改完点底部「发布」。" : "");
   $("#groupTools").hidden = !admin || !g.groups;
+  $("#replayGroup").hidden = !(d.drawLog && d.drawLog.group && g.groups);
   const box = $("#groups");
-  if (!g.groups) { box.innerHTML = `<div class="empty">${admin ? "在上方「小组赛设置与抽签」里填好名单，点「一键抽签分组」。" : "还没有抽签分组，请等待组织者发布。"}</div>`; return; }
+  if (!g.groups) { box.innerHTML = `<div class="empty">${admin ? "在上方「小组赛设置与抽签」里填好名单，点「开始分组抽签」。" : "还没有抽签分组，请等待组织者发布。"}</div>`; return; }
   box.innerHTML = g.groups.map((members, gi) => {
     let body;
     if (g.scoreMode === "match") {
@@ -820,6 +959,7 @@ $("#groupReset").onclick = () => {
 $("#restartBtn").onclick = () => {
   if (!confirm("全部重新开始？\n\n小组赛、淘汰赛、冠军赛的分组和比分都会清空。参赛名单保留，你重新抽签就行。")) return;
   Object.assign(draft.group, { groups: null, matches: null, pts: null, extra: [], playoffs: [] });
+  draft.drawLog = { group: null, ko: {} };
   draft.ko = []; draft.final = newFinal(); ensureStructure(draft);
   page = "group"; $("#promoBox").hidden = true;
   renderAll(); markChanged();
@@ -860,8 +1000,16 @@ $("#promoGo").onclick = () => {
   for (let gi = 0; gi < G; gi++) { W.push(pos[L(gi) + "1"]); R.push(pos[L(gi) + "2"]); draft.codes[pos[L(gi) + "1"]] = L(gi) + "1"; draft.codes[pos[L(gi) + "2"]] = L(gi) + "2"; }
   draft.qual = { W, R };
   if (draft.ko.length) {
-    setTies(draft.ko[0], crossDraw(W, R), draft.codes);
-    page = "ko";
+    $("#promoBox").hidden = true;
+    renderAll(); markChanged();
+    openCeremony({ mode: "r16", title: koName(draft, 0) + " · 对阵抽签", W: W.slice(), R: R.slice(), codes: draft.codes, onCommit: (pairs, log) => {
+      setTies(draft.ko[0], pairs, draft.codes);
+      setDrawLog(0, pairs);
+      page = "ko"; renderAll(); markChanged();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      toast("抽签完成！确认无误后点底部「发布」", 3500);
+    } });
+    return;
   } else { // 只有 2 组：前两名直接进冠军赛
     draft.final.names = ["A1", "B2", "B1", "A2"].map(k => pos[k]);
     draft.final.matches = makeMatches(draft.final.names);
@@ -953,6 +1101,7 @@ $("#importGo").onclick = () => {
     g.pts = g.groups.map(x => x.map(() => 0));
     g.extra = []; g.playoffs = [];
     draft.ko = []; draft.final = newFinal(); ensureStructure(draft);
+    draft.drawLog = { group: null, ko: {} };
   }
   pendingImport = null; page = null;
   $("#importIn").value = ""; $("#importPreview").hidden = true; $("#importActions").hidden = true;
@@ -1023,7 +1172,8 @@ function renderKoPage(){
     const nextBtn = r + 1 < R ? `抽签 → 生成${nextLabel}` : "确认晋级 → 进入冠军赛";
     const canRedraw = filled && !roundHasScores(rd) && !laterFilledIn(d, r);
     const btn = admin && filled ? `<div class="row"><button type="button" class="primary" data-advance="${r}" ${allDone ? "" : "disabled"}>${nextBtn}</button>${allDone ? "" : '<span class="hint" style="margin:0">本轮每组都决出胜者后才能进入下一轮</span>'}${canRedraw ? `<button type="button" data-redraw="${r}">重新抽签</button>` : ""}<button type="button" class="danger" data-koreset="${r}">清零本轮比分</button></div>` : "";
-    return `<section class="round"><h3>${koName(d, r)}</h3><div class="ties">${ties}</div>${btn}</section>`;
+    const rp = d.drawLog && d.drawLog.ko && d.drawLog.ko[r] && filled ? `<button type="button" class="btn-replay" data-replay="${r}">回放抽签</button>` : "";
+    return `<section class="round"><div class="row" style="justify-content:space-between"><h3>${koName(d, r)}</h3>${rp}</div><div class="ties">${ties}</div>${btn}</section>`;
   }).join("");
 }
 $("#bracket").addEventListener("click", e => {
@@ -1035,6 +1185,7 @@ $("#bracket").addEventListener("click", e => {
 });
 // 清空第 r 轮之后的所有轮次和冠军赛
 function clearAfter(r){
+  if (draft.drawLog && draft.drawLog.ko) Object.keys(draft.drawLog.ko).forEach(x => { if (+x > r) delete draft.drawLog.ko[x]; });
   for (let k = r + 1; k < draft.ko.length; k++) draft.ko[k].ties = draft.ko[k].ties.map(newTie);
   draft.final = newFinal();
 }
@@ -1056,11 +1207,17 @@ $("#rounds").addEventListener("click", e => {
     const r = +adv.dataset.advance, winners = draft.ko[r].ties.map(t => tieResult(t).winner);
     if (winners.some(w => !w)) return toast("还有组没决出胜者");
     if (laterFilled(r) && !confirm("后面的轮次已经填过，确认后会重新填入，后面的比分会清空。确定吗？")) return;
-    clearAfter(r);
     if (r + 1 < draft.ko.length) {
-      setTies(draft.ko[r + 1], randomPairs(winners), draft.codes || {});
-      toast(`${koName(draft, r + 1)}抽签完成！确认无误后点底部「发布」`, 3000);
+      openCeremony({ mode: "pairs", title: koName(draft, r + 1) + " · 对阵抽签", pool: winners.slice(), codes: draft.codes || {}, onCommit: (pairs) => {
+        clearAfter(r);
+        setTies(draft.ko[r + 1], pairs, draft.codes || {});
+        setDrawLog(r + 1, pairs);
+        renderAll(); markChanged();
+        toast(`${koName(draft, r + 1)}抽签完成！确认无误后点底部「发布」`, 3000);
+      } });
+      return;
     } else {
+      clearAfter(r);
       draft.final.names = winners.slice(0, 4);
       draft.final.matches = makeMatches(draft.final.names);
       page = "final";
@@ -1074,13 +1231,14 @@ $("#rounds").addEventListener("click", e => {
     const r = +rd.dataset.redraw, round = draft.ko[r];
     if (roundHasScores(round)) return toast("这一轮已经填了比分，不能重新抽签");
     if (!confirm(wasPublished(r) ? `${koName(draft, r)}的抽签结果已经发布，大家都看到了。确定要重新抽签吗？` : `重新抽${koName(draft, r)}的签？`)) return;
+    const done2 = (pairs) => { setTies(draft.ko[r], pairs, draft.codes || {}); setDrawLog(r, pairs); renderAll(); markChanged(); toast("已重新抽签，确认后点底部「发布」"); };
     if (r === 0) {
       const q = draft.qual || { W: round.ties.map(t => t.a), R: round.ties.map(t => t.b) };
-      setTies(round, crossDraw(q.W, q.R), draft.codes || {});
+      openCeremony({ mode: "r16", title: koName(draft, 0) + " · 重新抽签", W: q.W.slice(), R: q.R.slice(), codes: draft.codes || {}, onCommit: done2 });
     } else {
-      setTies(round, randomPairs(round.ties.flatMap(t => [t.a, t.b])), draft.codes || {});
+      openCeremony({ mode: "pairs", title: koName(draft, r) + " · 重新抽签", pool: round.ties.flatMap(t => [t.a, t.b]), codes: draft.codes || {}, onCommit: done2 });
     }
-    renderAll(); markChanged(); toast("已重新抽签，确认后点底部「发布」"); return;
+    return;
   }
   const rs = e.target.closest("[data-koreset]");
   if (rs) {
@@ -1117,6 +1275,148 @@ $("#finalReset").onclick = () => {
   draft.final.matches.forEach(m => { m.sa = ""; m.sb = ""; }); draft.final.extra = newExtra(); draft.final.pick = null; draft.final.playoff = null;
   renderAll(); markChanged();
 };
+
+/* ============ 抽签仪式 ============
+ * group：小组分组，按 A 组 1 号位 → B 组 1 号位 → … → H 组 1 号位 → A 组 2 号位 … 的顺序一签一签填
+ * r16：16强，先抽一个小组第一，再给他抽一个其他组的小组第二（同组回避，并保证剩下的一定能配完）
+ * pairs：8强及以后，一个签筒，按 第1组左、第1组右、第2组左 … 的顺序填
+ * replay：按保存的抽签顺序回放，只看不改 */
+let cer = null;
+const reduceMotion = (() => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { return false; } })();
+const grpOf = (codes, n) => (codes[n] || "?")[0];
+function canMatch(Ws, Rs, codes){ // 剩下的小组第一和小组第二能否全部配成不同组的对
+  if (!Ws.length) return true;
+  const w = Ws[0];
+  return Rs.some((r, i) => grpOf(codes, r) !== grpOf(codes, w) && canMatch(Ws.slice(1), Rs.filter((_, j) => j !== i), codes));
+}
+function cerTotal(c){ return c.mode === "group" ? c.names.length : c.mode === "r16" ? c.W.length * 2 : c.pool.length; }
+function cerDone(c){ return c.picks.length >= cerTotal(c); }
+// 下一签的候选人（随机从中选一个）
+function cerCandidates(c){
+  if (c.mode === "group" || c.mode === "pairs") { const all = c.mode === "group" ? c.names : c.pool; return all.filter(n => !c.picks.includes(n)); }
+  const used = c.picks;
+  if (used.length % 2 === 0) return c.W.filter(n => !used.includes(n));
+  const w = used[used.length - 1], restW = c.W.filter(n => !used.includes(n) && n !== w);
+  const restR = c.R.filter(n => !used.includes(n));
+  return restR.filter(r => grpOf(c.codes, r) !== grpOf(c.codes, w) && canMatch(restW, restR.filter(x => x !== r), c.codes));
+}
+function cerNextPick(c){
+  if (c.replay) return c.log[c.picks.length];
+  const cand = cerCandidates(c);
+  return cand[Math.floor(Math.random() * cand.length)];
+}
+function openCeremony(c){
+  c.picks = []; c.rolling = false; cer = c;
+  $("#cer").hidden = false; document.body.style.overflow = "hidden"; $("#cer").scrollTop = 0;
+  renderCer();
+}
+function closeCeremony(){ if (cer && cer.timer) clearInterval(cer.timer); cer = null; $("#cer").hidden = true; document.body.style.overflow = ""; }
+function cerDraw(){
+  const c = cer; if (!c || c.rolling || cerDone(c)) return;
+  const pick = cerNextPick(c); if (pick == null) return;
+  if (reduceMotion) { c.picks.push(pick); renderCer(); return; }
+  const pool = c.replay ? [pick] : cerCandidates(c);
+  const shown = pool.length > 1 ? pool : (c.mode === "group" ? c.names : c.mode === "pairs" ? c.pool : c.W.concat(c.R));
+  c.rolling = true; renderCer();
+  let i = 0;
+  c.timer = setInterval(() => { const el = $("#cerName"); if (el) el.textContent = shown[(i++ + Math.floor(Math.random() * shown.length)) % shown.length]; }, 70);
+  setTimeout(() => { clearInterval(c.timer); c.timer = null; c.rolling = false; c.picks.push(pick); renderCer(); }, 1100);
+}
+function cerAuto(){ const c = cer; if (!c || c.rolling) return; while (!cerDone(c)) { const p = cerNextPick(c); if (p == null) break; c.picks.push(p); } renderCer(); }
+function cerRestart(){ const c = cer; if (!c || c.rolling) return; if (c.picks.length && !c.replay && !confirm("重新开始这次抽签？刚才抽出的结果会作废。")) return; c.picks = []; renderCer(); }
+function cerResult(c){
+  if (c.mode === "group") { const g = Array.from({ length: c.G }, () => []); c.picks.forEach((n, i) => g[i % c.G].push(n)); return g; }
+  const out = []; for (let i = 0; i < c.picks.length; i += 2) out.push([c.picks[i], c.picks[i + 1]]); return out;
+}
+function cerConfirm(){ const c = cer; if (!c || !cerDone(c) || c.replay) return; const res = cerResult(c), log = c.picks.slice(); closeCeremony(); c.onCommit(res, log); }
+
+function renderCer(){
+  const c = cer; if (!c) return;
+  const n = cerTotal(c), k = c.picks.length, doneAll = k >= n, last = c.picks[k - 1];
+  let stageSlot = "准备开始", stageName = "？", stageInto = "", next = "", bigText = "抽下一签", note = "", body = "";
+  const codeTag = nm => c.codes && c.codes[nm] ? c.codes[nm] : "";
+  if (c.mode === "group") {
+    const slot = i => `${L(i % c.G)} 组 · ${Math.floor(i / c.G) + 1} 号位`;
+    if (k) { stageSlot = `第 ${k} 签`; stageName = last; stageInto = "进入 " + slot(k - 1); } else stageInto = `共 ${n} 人 · 分成 ${c.G} 组`;
+    if (!doneAll) next = "下一签：" + slot(k);
+    const rows = Math.ceil(n / c.G);
+    body = `<div class="cgrid">${[...Array(c.G).keys()].map(gi => `<div class="cg"><h5>${L(gi)} 组</h5>${[...Array(rows).keys()].map(p => {
+      const i = p * c.G + gi; if (i >= n) return "";
+      const nm = c.picks[i];
+      if (nm) return `<div class="${i === k - 1 ? "new" : ""}"><em>${p + 1}</em>${esc(nm)}</div>`;
+      return i === k && !c.rolling ? `<div class="cur"><em>${p + 1}</em>下一签</div>` : i === k ? `<div class="cur"><em>${p + 1}</em>抽签中…</div>` : `<div class="ph"><em>${p + 1}</em>—</div>`;
+    }).join("")}</div>`).join("")}</div>`;
+    const rest = c.names.filter(x => !c.picks.includes(x));
+    if (!c.replay && rest.length) body += `<div class="cpot"><h4>签筒 · 还剩 ${rest.length} 人</h4><div class="chips">${rest.map(x => `<span class="chip">${esc(x)}</span>`).join("")}</div></div>`;
+  } else {
+    const ties = n / 2, t = Math.floor(k / 2), side = k % 2;
+    if (c.mode === "r16") {
+      bigText = side === 0 ? "抽小组第一" : "抽对手（小组第二）";
+      if (k) {
+        if (k % 2 === 1) { stageSlot = `第 ${t + 1} 组对决 · 小组第一`; stageName = last; stageInto = `${codeTag(last)} · 等待对手…`; }
+        else { stageSlot = `第 ${t} 组对决 · 对手`; stageName = last; stageInto = `${codeTag(last)} · 对阵 ${c.picks[k - 2]}（${codeTag(c.picks[k - 2])}）`; }
+      } else stageInto = "先抽小组第一，再给他抽一个其他组的小组第二";
+      if (!doneAll) next = side === 0 ? `下一签：第 ${t + 1} 组对决 · 小组第一` : `下一签：给 ${c.picks[k - 1]} 抽对手`;
+      if (!doneAll && side === 1 && !c.rolling) { const w = c.picks[k - 1], g = grpOf(c.codes, w); note = `同组回避：${esc(w)} 是 ${g} 组第一，这一签不会抽到 ${g} 组第二。`; }
+      if (!c.replay) {
+        const restW = c.W.filter(x => !c.picks.includes(x)), restR = c.R.filter(x => !c.picks.includes(x));
+        const okR = side === 1 ? cerCandidates(c) : restR;
+        body += `<div class="ctwo"><div class="cpot"><h4>小组第一 · 剩 ${restW.length}</h4><div class="chips">${restW.map(x => `<span class="chip">${esc(x)} <small>${codeTag(x)}</small></span>`).join("")}</div></div>
+          <div class="cpot"><h4>小组第二 · 剩 ${restR.length}</h4><div class="chips">${restR.map(x => `<span class="chip ${okR.includes(x) ? "" : "off"}">${esc(x)} <small>${codeTag(x)}</small></span>`).join("")}</div></div></div>`;
+      }
+    } else {
+      if (k) { stageSlot = `第 ${k} 签`; stageName = last; const tt = Math.floor((k - 1) / 2); stageInto = `进入第 ${tt + 1} 组对决 · ${(k - 1) % 2 ? "右边" : "左边"}`; } else stageInto = `${n} 人 · 抽成 ${ties} 组对决`;
+      if (!doneAll) next = `下一签：第 ${t + 1} 组对决 · ${side ? "右边" : "左边"}`;
+      const rest = c.pool.filter(x => !c.picks.includes(x));
+      if (!c.replay && rest.length) body += `<div class="cpot"><h4>签筒 · 还剩 ${rest.length} 人</h4><div class="chips">${rest.map(x => `<span class="chip">${esc(x)}</span>`).join("")}</div></div>`;
+    }
+    body += `<div class="cties">${[...Array(ties).keys()].map(i => {
+      const a = c.picks[2 * i], b = c.picks[2 * i + 1], cur = !doneAll && i === t;
+      const cell = (nm, isCur) => nm ? `<span>${esc(nm)}${codeTag(nm) ? `<small>${codeTag(nm)}</small>` : ""}</span>` : isCur ? `<span class="qm">？</span>` : `<span class="ph">待抽签</span>`;
+      return `<div class="ctie ${cur ? "cur" : ""}"><b>${i + 1}</b>${cell(a, cur && side === 0)}<span class="vs">vs</span>${cell(b, cur && side === 1)}</div>`;
+    }).join("")}</div>`;
+  }
+  if (doneAll) { stageSlot = c.replay ? "回放结束" : "抽签完成"; stageName = "全部抽完"; stageInto = c.replay ? "以上就是当时的抽签结果" : "确认没问题就点「确认结果」"; next = ""; note = ""; }
+  const pct = Math.round(k / n * 100);
+  const btns = doneAll
+    ? (c.replay ? `<button type="button" class="cbig" data-cer="close">关闭</button>` : `<button type="button" class="cbig" data-cer="confirm">确认结果</button><button type="button" class="csm" data-cer="restart">重新开始</button>`)
+    : `<button type="button" class="cbig" data-cer="draw" ${c.rolling ? "disabled" : ""}>${c.replay ? "下一签" : bigText}</button><button type="button" class="csm" data-cer="auto" ${c.rolling ? "disabled" : ""}>${c.replay ? "全部显示" : "自动抽完"}</button>`;
+  $("#cerBody").innerHTML = `
+    <div class="ctop"><h2>${esc(c.title)}${c.replay ? ` <span class="ctag">回放</span>` : ""}</h2><button type="button" class="cx" data-cer="close" aria-label="关闭">✕</button></div>
+    <div class="cprog"><span>已抽 ${k} / ${n}</span>${!c.replay && k && !doneAll ? `<button type="button" class="link" data-cer="restart">重新开始</button>` : ""}</div>
+    <div class="cbar"><i style="width:${pct}%"></i></div>
+    <div class="cstage ${c.rolling ? "rolling" : ""}"><div class="cslot">${c.rolling ? "抽签中…" : esc(stageSlot)}</div><div class="cname" id="cerName">${esc(stageName)}</div><div class="cinto">${c.rolling ? "&nbsp;" : esc(stageInto)}</div></div>
+    <div class="cbtns">${btns}</div>
+    ${next ? `<div class="cnext">${esc(next)}</div>` : ""}
+    ${note ? `<div class="notice">${note}</div>` : ""}
+    ${body}`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-cer]"); if (!b || !cer) return;
+  const a = b.dataset.cer;
+  if (a === "draw") cerDraw(); else if (a === "auto") cerAuto(); else if (a === "restart") cerRestart(); else if (a === "confirm") cerConfirm();
+  else if (a === "close") { if (!cer.replay && cer.picks.length && !cerDone(cer) && !confirm("抽签还没完成，关闭后这次抽签作废。确定关闭吗？")) return; if (!cer.replay && cerDone(cer) && !confirm("还没点「确认结果」，关闭后这次抽签作废。确定关闭吗？")) return; closeCeremony(); }
+});
+// 回放
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-replay]"); if (!b) return;
+  const d = view(), log = d.drawLog || {}, key = b.dataset.replay;
+  if (key === "group") {
+    const L0 = log.group; if (!L0) return;
+    openCeremony({ mode: "group", replay: true, title: "回放 · 小组分组抽签", G: L0.G, names: L0.seq.slice(), log: L0.seq.slice() });
+  } else {
+    const r = +key, L1 = (log.ko || {})[r]; if (!L1) return;
+    const flat = L1.flat();
+    if (r === 0) openCeremony({ mode: "r16", replay: true, title: "回放 · " + koName(d, 0) + "抽签", W: L1.map(p => p[0]), R: L1.map(p => p[1]), codes: d.codes || {}, log: flat });
+    else openCeremony({ mode: "pairs", replay: true, title: "回放 · " + koName(d, r) + "抽签", pool: flat.slice(), codes: d.codes || {}, log: flat });
+  }
+});
+function setDrawLog(key, val){
+  draft.drawLog = draft.drawLog || { group: null, ko: {} };
+  draft.drawLog.ko = draft.drawLog.ko || {};
+  if (key === "group") { draft.drawLog.group = val; draft.drawLog.ko = {}; }
+  else { draft.drawLog.ko[key] = val; Object.keys(draft.drawLog.ko).forEach(x => { if (+x > +key) delete draft.drawLog.ko[x]; }); }
+}
 
 /* ============ 录比分（三页共用） ============ */
 document.addEventListener("input", e => {
