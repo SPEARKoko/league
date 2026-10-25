@@ -224,6 +224,13 @@ tr.adv td.pos::before,.prow.adv .pos::before{content:"";display:inline-block;wid
 .ctie .qm{color:var(--gold);font-weight:900;font-size:17px}
 .ctie.cur{box-shadow:0 0 0 2px var(--gold);background:var(--gold-soft)}
 .btn-replay{padding:4px 12px;font-size:13px}
+.tag-manual{font-size:12px;color:var(--muted);background:var(--chip);border-radius:999px;padding:2px 10px}
+.mrows{display:flex;flex-direction:column;gap:8px}
+.mrow{display:grid;grid-template-columns:22px 1fr 22px 1fr;gap:6px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.mrow b{color:var(--muted);font-size:12px}
+.mrow .vs{color:var(--muted);text-align:center;font-size:11px}
+.mrow select{padding:7px 6px;font-size:14px;min-width:0}
+.cbig:disabled{opacity:.45}
 .abar{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:var(--bg);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;z-index:10}
 .abar .st{font-size:14px}
 .abar .st b{color:var(--gold)}
@@ -347,6 +354,7 @@ textarea.out{min-height:120px}
       <div class="promo-grid" id="promoGrid"></div>
       <div class="row">
         <button class="primary" type="button" id="promoGo">确认出线，开始抽签</button>
+        <button type="button" id="promoManual">确认出线，手动填入对阵</button>
         <button type="button" id="promoCancel">取消</button>
       </div>
     </section>
@@ -440,6 +448,7 @@ textarea.out{min-height:120px}
         <li><b>16强</b>：先抽一个小组第一，再给他抽一个其他组的小组第二。</li>
         <li><b>8强</b>：按第 1 组左边、第 1 组右边、第 2 组左边……的顺序依次填入。</li>
         <li>抽完后，大家可以在网页上点「回放抽签」，一签一签地看当时的抽签过程。</li>
+        <li>16强和 8强也可以线下抽签，再由组织者把结果手动填进网页，这一轮会标「手动填入」，没有回放。</li>
         <li>某一轮还没开始填比分时，组织者可以重新抽签；一旦开始比赛就不再重抽。</li>
       </ol>
     </article>
@@ -987,7 +996,9 @@ $("#promoOpen").onclick = () => {
   $("#promoBox").scrollIntoView({ behavior: "smooth", block: "start" });
 };
 $("#promoCancel").onclick = () => { $("#promoBox").hidden = true; };
-$("#promoGo").onclick = () => {
+$("#promoGo").onclick = () => promoConfirm(false);
+$("#promoManual").onclick = () => promoConfirm(true);
+function promoConfirm(manual){
   const g = draft.group, G = g.groups.length, pos = {};
   for (let gi = 0; gi < G; gi++) {
     const a = $(`#pr-${gi}-0`).value, b = $(`#pr-${gi}-1`).value;
@@ -1002,12 +1013,12 @@ $("#promoGo").onclick = () => {
   if (draft.ko.length) {
     $("#promoBox").hidden = true;
     renderAll(); markChanged();
-    openCeremony({ mode: "r16", title: koName(draft, 0) + " · 对阵抽签", W: W.slice(), R: R.slice(), codes: draft.codes, onCommit: (pairs, log) => {
+    (manual ? openManual : openCeremony)({ mode: "r16", title: koName(draft, 0) + (manual ? " · 手动填入对阵" : " · 对阵抽签"), W: W.slice(), R: R.slice(), codes: draft.codes, onCommit: (pairs) => {
       setTies(draft.ko[0], pairs, draft.codes);
-      setDrawLog(0, pairs);
+      markRound(0, manual, pairs);
       page = "ko"; renderAll(); markChanged();
       window.scrollTo({ top: 0, behavior: "smooth" });
-      toast("抽签完成！确认无误后点底部「发布」", 3500);
+      toast((manual ? "已填入对阵！" : "抽签完成！") + "确认无误后点底部「发布」", 3500);
     } });
     return;
   } else { // 只有 2 组：前两名直接进冠军赛
@@ -1018,8 +1029,8 @@ $("#promoGo").onclick = () => {
   $("#promoBox").hidden = true;
   renderAll(); markChanged();
   window.scrollTo({ top: 0, behavior: "smooth" });
-  toast("抽签完成！确认无误后点底部「发布」", 3500);
-};
+  toast("已填入冠军赛，确认无误后点底部「发布」", 3500);
+}
 
 /* ============ 导出 / 导入 ============ */
 function copyOut(text, okMsg){
@@ -1171,8 +1182,9 @@ function renderKoPage(){
     }).join("");
     const nextBtn = r + 1 < R ? `抽签 → 生成${nextLabel}` : "确认晋级 → 进入冠军赛";
     const canRedraw = filled && !roundHasScores(rd) && !laterFilledIn(d, r);
-    const btn = admin && filled ? `<div class="row"><button type="button" class="primary" data-advance="${r}" ${allDone ? "" : "disabled"}>${nextBtn}</button>${allDone ? "" : '<span class="hint" style="margin:0">本轮每组都决出胜者后才能进入下一轮</span>'}${canRedraw ? `<button type="button" data-redraw="${r}">重新抽签</button>` : ""}<button type="button" class="danger" data-koreset="${r}">清零本轮比分</button></div>` : "";
-    const rp = d.drawLog && d.drawLog.ko && d.drawLog.ko[r] && filled ? `<button type="button" class="btn-replay" data-replay="${r}">回放抽签</button>` : "";
+    const manBtn = r + 1 < R ? `<button type="button" data-advance="${r}" data-manual="1" ${allDone ? "" : "disabled"}>手动填入${nextLabel}</button>` : "";
+    const btn = admin && filled ? `<div class="row"><button type="button" class="primary" data-advance="${r}" ${allDone ? "" : "disabled"}>${nextBtn}</button>${manBtn}${allDone ? "" : '<span class="hint" style="margin:0">本轮每组都决出胜者后才能进入下一轮</span>'}${canRedraw ? `<button type="button" data-redraw="${r}">重新抽签</button><button type="button" data-redraw="${r}" data-manual="1">重新手动填入</button>` : ""}<button type="button" class="danger" data-koreset="${r}">清零本轮比分</button></div>` : "";
+    const rp = !filled ? "" : rd.manual ? `<span class="tag-manual">手动填入</span>` : d.drawLog && d.drawLog.ko && d.drawLog.ko[r] ? `<button type="button" class="btn-replay" data-replay="${r}">回放抽签</button>` : "";
     return `<section class="round"><div class="row" style="justify-content:space-between"><h3>${koName(d, r)}</h3>${rp}</div><div class="ties">${ties}</div>${btn}</section>`;
   }).join("");
 }
@@ -1186,7 +1198,7 @@ $("#bracket").addEventListener("click", e => {
 // 清空第 r 轮之后的所有轮次和冠军赛
 function clearAfter(r){
   if (draft.drawLog && draft.drawLog.ko) Object.keys(draft.drawLog.ko).forEach(x => { if (+x > r) delete draft.drawLog.ko[x]; });
-  for (let k = r + 1; k < draft.ko.length; k++) draft.ko[k].ties = draft.ko[k].ties.map(newTie);
+  for (let k = r + 1; k < draft.ko.length; k++) { draft.ko[k].ties = draft.ko[k].ties.map(newTie); draft.ko[k].manual = false; }
   draft.final = newFinal();
 }
 function laterFilledIn(d, r){ return d.ko.slice(r + 1).some(x => x.ties.some(t => t.a)) || d.final.names.some(Boolean); }
@@ -1208,12 +1220,13 @@ $("#rounds").addEventListener("click", e => {
     if (winners.some(w => !w)) return toast("还有组没决出胜者");
     if (laterFilled(r) && !confirm("后面的轮次已经填过，确认后会重新填入，后面的比分会清空。确定吗？")) return;
     if (r + 1 < draft.ko.length) {
-      openCeremony({ mode: "pairs", title: koName(draft, r + 1) + " · 对阵抽签", pool: winners.slice(), codes: draft.codes || {}, onCommit: (pairs) => {
+      const manual = adv.dataset.manual === "1";
+      (manual ? openManual : openCeremony)({ mode: "pairs", title: koName(draft, r + 1) + (manual ? " · 手动填入对阵" : " · 对阵抽签"), pool: winners.slice(), codes: draft.codes || {}, onCommit: (pairs) => {
         clearAfter(r);
         setTies(draft.ko[r + 1], pairs, draft.codes || {});
-        setDrawLog(r + 1, pairs);
+        markRound(r + 1, manual, pairs);
         renderAll(); markChanged();
-        toast(`${koName(draft, r + 1)}抽签完成！确认无误后点底部「发布」`, 3000);
+        toast(`${koName(draft, r + 1)}${manual ? "对阵已填入" : "抽签完成"}！确认无误后点底部「发布」`, 3000);
       } });
       return;
     } else {
@@ -1230,13 +1243,15 @@ $("#rounds").addEventListener("click", e => {
   if (rd) {
     const r = +rd.dataset.redraw, round = draft.ko[r];
     if (roundHasScores(round)) return toast("这一轮已经填了比分，不能重新抽签");
-    if (!confirm(wasPublished(r) ? `${koName(draft, r)}的抽签结果已经发布，大家都看到了。确定要重新抽签吗？` : `重新抽${koName(draft, r)}的签？`)) return;
-    const done2 = (pairs) => { setTies(draft.ko[r], pairs, draft.codes || {}); setDrawLog(r, pairs); renderAll(); markChanged(); toast("已重新抽签，确认后点底部「发布」"); };
+    const manual = rd.dataset.manual === "1", what = manual ? "重新手动填入" : "重新抽签";
+    if (!confirm(wasPublished(r) ? `${koName(draft, r)}的对阵已经发布，大家都看到了。确定要${what}吗？` : `${what}${koName(draft, r)}的对阵？`)) return;
+    const done2 = (pairs) => { setTies(draft.ko[r], pairs, draft.codes || {}); markRound(r, manual, pairs); renderAll(); markChanged(); toast(`已${what}，确认后点底部「发布」`); };
+    const open = manual ? openManual : openCeremony, cur = round.ties.map(t => [t.a, t.b]);
     if (r === 0) {
       const q = draft.qual || { W: round.ties.map(t => t.a), R: round.ties.map(t => t.b) };
-      openCeremony({ mode: "r16", title: koName(draft, 0) + " · 重新抽签", W: q.W.slice(), R: q.R.slice(), codes: draft.codes || {}, onCommit: done2 });
+      open({ mode: "r16", title: koName(draft, 0) + " · " + what, W: q.W.slice(), R: q.R.slice(), codes: draft.codes || {}, prefill: cur, onCommit: done2 });
     } else {
-      openCeremony({ mode: "pairs", title: koName(draft, r) + " · 重新抽签", pool: round.ties.flatMap(t => [t.a, t.b]), codes: draft.codes || {}, onCommit: done2 });
+      open({ mode: "pairs", title: koName(draft, r) + " · " + what, pool: round.ties.flatMap(t => [t.a, t.b]), codes: draft.codes || {}, prefill: cur, onCommit: done2 });
     }
     return;
   }
@@ -1409,6 +1424,61 @@ document.addEventListener("click", e => {
     const flat = L1.flat();
     if (r === 0) openCeremony({ mode: "r16", replay: true, title: "回放 · " + koName(d, 0) + "抽签", W: L1.map(p => p[0]), R: L1.map(p => p[1]), codes: d.codes || {}, log: flat });
     else openCeremony({ mode: "pairs", replay: true, title: "回放 · " + koName(d, r) + "抽签", pool: flat.slice(), codes: d.codes || {}, log: flat });
+  }
+});
+/* ============ 手动填入对阵（线下抽签后录入） ============ */
+// 抽签仪式完成：保存抽签记录可回放；手动填入：标记「手动填入」，不提供回放
+function markRound(r, manual, pairs){
+  draft.ko[r].manual = !!manual;
+  if (manual) { setDrawLog(r, pairs); delete draft.drawLog.ko[r]; }
+  else setDrawLog(r, pairs);
+}
+let man = null;
+function openManual(c){
+  const n = c.mode === "r16" ? c.W.length : c.pool.length / 2;
+  c.rows = [...Array(n)].map((_, i) => (c.prefill && c.prefill[i] ? c.prefill[i].slice() : ["", ""]));
+  man = c; cer = null;
+  $("#cer").hidden = false; document.body.style.overflow = "hidden"; $("#cer").scrollTop = 0;
+  renderManual();
+}
+function closeManual(){ man = null; $("#cer").hidden = true; document.body.style.overflow = ""; }
+function manualProblems(c){
+  const out = [], seen = {};
+  c.rows.forEach((row, i) => row.forEach(nm => { if (nm) { if (seen[nm]) out.push(`${nm} 选了两次`); seen[nm] = 1; } }));
+  if (c.mode === "r16") c.rows.forEach((row, i) => {
+    if (row[0] && row[1] && (c.codes[row[0]] || "")[0] === (c.codes[row[1]] || "")[0]) out.push(`第 ${i + 1} 组：${row[0]} 和 ${row[1]} 是同一组的，同组不能相遇`);
+  });
+  return [...new Set(out)];
+}
+function renderManual(){
+  const c = man; if (!c) return;
+  const tag = nm => c.codes && c.codes[nm] ? `（${c.codes[nm]}）` : "";
+  const leftList = c.mode === "r16" ? c.W : c.pool, rightList = c.mode === "r16" ? c.R : c.pool;
+  const used = new Set(c.rows.flat().filter(Boolean));
+  const opts = (list, val) => `<option value="">请选择</option>` + list.map(nm => `<option value="${esc(nm)}" ${nm === val ? "selected" : ""}>${esc(nm)}${tag(nm)}${nm !== val && used.has(nm) ? " · 已选" : ""}</option>`).join("");
+  const filledN = c.rows.filter(r => r[0] && r[1]).length, probs = manualProblems(c), ok = filledN === c.rows.length && !probs.length;
+  $("#cerBody").innerHTML = `
+    <div class="ctop"><h2>${esc(c.title)}</h2><button type="button" class="cx" data-man="close" aria-label="关闭">✕</button></div>
+    <p class="hint" style="margin:0">把线下抽签的结果录进来。${c.mode === "r16" ? "左边选小组第一，右边选小组第二，同组不能相遇。" : "每组选两个人。"}手动填入的对阵不提供「回放抽签」。</p>
+    <div class="cprog"><span>已填 ${filledN} / ${c.rows.length} 组</span></div>
+    <div class="mrows">${c.rows.map((row, i) => `<div class="mrow"><b>${i + 1}</b>
+      <select data-mrow="${i}" data-side="0" aria-label="第 ${i + 1} 组左边">${opts(leftList, row[0])}</select><span class="vs">vs</span>
+      <select data-mrow="${i}" data-side="1" aria-label="第 ${i + 1} 组右边">${opts(rightList, row[1])}</select></div>`).join("")}</div>
+    ${probs.length ? `<div class="notice">${probs.map(esc).join("<br>")}</div>` : ""}
+    <div class="cbtns"><button type="button" class="cbig" data-man="ok" ${ok ? "" : "disabled"}>确认对阵</button><button type="button" class="csm" data-man="clear">清空重填</button></div>`;
+}
+document.addEventListener("change", e => {
+  const el = e.target; if (!man || !el.matches("[data-mrow]")) return;
+  man.rows[+el.dataset.mrow][+el.dataset.side] = el.value; renderManual();
+});
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-man]"); if (!b || !man) return;
+  const a = b.dataset.man;
+  if (a === "close") { if (man.rows.some(r => r[0] || r[1]) && !confirm("还没确认，关闭后刚才填的不会保存。确定关闭吗？")) return; closeManual(); }
+  else if (a === "clear") { man.rows = man.rows.map(() => ["", ""]); renderManual(); }
+  else if (a === "ok") {
+    if (manualProblems(man).length || man.rows.some(r => !r[0] || !r[1])) return;
+    const c = man, pairs = c.rows.map(r => r.slice()); closeManual(); c.onCommit(pairs);
   }
 });
 function setDrawLog(key, val){
