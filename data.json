@@ -1,6 +1,6 @@
 {
  "title": "联盟世界杯",
- "updatedAt": "2026-10-25T13:03:44.802Z",
+ "updatedAt": "2026-10-25T13:08:20.006Z",
  "group": {
   "names": [
    "中丨央丶板牙",
@@ -647,8 +647,8 @@
   {
    "ties": [
     {
-     "a": null,
-     "b": null,
+     "a": "中丨央丶板牙",
+     "b": "中央丨气象台",
      "legs": [
       {
        "sa": "",
@@ -665,11 +665,14 @@
       "pa": "",
       "pb": ""
      },
-     "pick": null
+     "pick": null,
+     "same": true,
+     "la": "E1",
+     "lb": "G2"
     },
     {
-     "a": null,
-     "b": null,
+     "a": "中丨央丶恶霸  啊浩",
+     "b": "Eso18cm男大",
      "legs": [
       {
        "sa": "",
@@ -686,11 +689,14 @@
       "pa": "",
       "pb": ""
      },
-     "pick": null
+     "pick": null,
+     "same": true,
+     "la": "A1",
+     "lb": "C1"
     },
     {
-     "a": null,
-     "b": null,
+     "a": "超级大鱼丸",
+     "b": "巡视组",
      "legs": [
       {
        "sa": "",
@@ -707,11 +713,14 @@
       "pa": "",
       "pb": ""
      },
-     "pick": null
+     "pick": null,
+     "same": true,
+     "la": "F1",
+     "lb": "F2"
     },
     {
-     "a": null,
-     "b": null,
+     "a": "中丨央丶海陆空",
+     "b": "SPEARKO",
      "legs": [
       {
        "sa": "",
@@ -728,9 +737,13 @@
       "pa": "",
       "pb": ""
      },
-     "pick": null
+     "pick": null,
+     "same": true,
+     "la": "G1",
+     "lb": "B1"
     }
-   ]
+   ],
+   "manual": true
   }
  ],
  "final": {
